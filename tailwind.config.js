@@ -4,15 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#07050f',
-        sidebar: '#0c0a18',
-        card: '#110f1e',
-        card2: '#161325',
-        card3: '#1c1830',
-        gold: { DEFAULT: '#c9a84c', light: '#e8c97a' },
+        bg: '#121113',
+        surface: '#191819',
+        sidebar: '#0f0e10',
+        card: '#191819',
+        card2: '#1f1e20',
+        card3: '#252326',
+        gold: { DEFAULT: '#FFCF56', light: '#FFE08A' },
         accent: { purple: '#9b6de0', blue: '#5b9bd5', pink: '#d45b8a' },
         teal: '#5bcfb0',
-        border: { DEFAULT: '#1e1a30', strong: '#2a2444' },
+        border: { DEFAULT: '#242226', strong: '#2e2b32' },
       },
       fontFamily: {
         cinzel: ['Cinzel', 'serif'],
