@@ -7,7 +7,7 @@ export function ShimmerBorder({ children, className }) {
       <div
         className="absolute inset-0 rounded-xl"
         style={{
-          background: 'conic-gradient(from 0deg, transparent 0deg, rgba(29,185,84,0.6) 60deg, rgba(30,215,96,0.4) 120deg, transparent 180deg, transparent 360deg)',
+          background: 'conic-gradient(from 0deg, transparent 0deg, rgba(29,185,84,0.55) 60deg, rgba(29,185,84,0.20) 120deg, transparent 180deg, transparent 360deg)',
           animation: 'spin-slow 4s linear infinite',
         }}
       />

@@ -28,7 +28,7 @@ function Home({ onNavigate, completion }) {
     { name: 'Foundation', color: '#5b9bd5', tag: 'Weeks 1–2',   desc: 'Identity, gear, genre — the prerequisites before you touch a fader' },
     { name: 'Theory',     color: '#1db954', tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
     { name: 'Craft',      color: '#9b6de0', tag: 'Months 2–4',  desc: 'The actual mixing — bass swaps, breakdowns, FX, energy architecture' },
-    { name: 'Practice',   color: '#1ed760', tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
+    { name: 'Practice',   color: '#1db954', tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
   ];
   const byPhase = phases.map(p => ({ ...p, chapters: CHAPTERS.filter(c => c.phase === p.name) }));
   const done = CHAPTERS.filter(c => completion[c.id]).length;
@@ -47,7 +47,7 @@ function Home({ onNavigate, completion }) {
 
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
-        .stat{background:rgba(24,24,24,1);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+        .stat{background:#181818;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
         .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(29,185,84,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
@@ -66,7 +66,7 @@ function Home({ onNavigate, completion }) {
         .ch-card{padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
         .ch-card-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .ch-card-title{font-family:var(--font-sans);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:600;margin-top:2px}
-        .ch-card-sub{font-size:12.5px;color:var(--muted);line-height:1.45;font-style:italic;margin-top:auto;padding-top:8px}
+        .ch-card-sub{font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;margin-top:auto;padding-top:8px}
         .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .2s}
         .ch-card.done .ch-card-status{background:var(--green);border-color:var(--green)}
         .ch-card.done .ch-card-status svg{display:block}
@@ -74,7 +74,7 @@ function Home({ onNavigate, completion }) {
 
         .quote-inner{padding:28px 32px;position:relative}
         .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
-        .quote-text{font-family:var(--font-sans);font-size:20px;color:var(--text);line-height:1.5;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
+        .quote-text{font-family:var(--font-sans);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
         .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
       `}</style>
 
@@ -161,8 +161,8 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
     <div className="page">
       <style>{`
         .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(40,40,40,.8);gap:14px}
-        .ch-foot-btn{flex:1;background:rgba(24,24,24,1);border:1px solid rgba(40,40,40,.9);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
-        .ch-foot-btn:hover{border-color:rgba(29,185,84,.25);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+        .ch-foot-btn{flex:1;background:#181818;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color 150ms ease,background 150ms ease,transform 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
+        .ch-foot-btn:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.03);transform:translateY(-1px)}
         .ch-foot-btn.right{text-align:right}
         .ch-foot-btn.disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
         .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}

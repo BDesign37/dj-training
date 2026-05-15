@@ -12,16 +12,16 @@ export function SpotlightCard({ children, className }) {
     mouseY.set(clientY - top)
   }
 
-  const spotlightBg = useMotionTemplate`radial-gradient(240px circle at ${mouseX}px ${mouseY}px, rgba(201,168,76,0.07), transparent 80%)`
-  const borderGlow  = useMotionTemplate`radial-gradient(180px circle at ${mouseX}px ${mouseY}px, rgba(201,168,76,0.28), transparent 80%)`
+  const spotlightBg = useMotionTemplate`radial-gradient(240px circle at ${mouseX}px ${mouseY}px, rgba(29,185,84,0.06), transparent 80%)`
+  const borderGlow  = useMotionTemplate`radial-gradient(180px circle at ${mouseX}px ${mouseY}px, rgba(29,185,84,0.20), transparent 80%)`
 
   return (
     <div
       onMouseMove={onMouseMove}
       className={cn(
-        'group relative rounded-xl border border-[#1e1a30] bg-[#110f1e] overflow-hidden',
-        'transition-all duration-200 ease-out',
-        'hover:-translate-y-0.5 hover:border-[rgba(201,168,76,0.2)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.45),0_0_0_1px_rgba(201,168,76,0.05)]',
+        'group relative rounded-xl border border-[rgba(255,255,255,0.07)] bg-[#181818] overflow-hidden',
+        'transition-all duration-150 ease-out',
+        'hover:-translate-y-0.5 hover:border-[rgba(255,255,255,0.12)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.45)]',
         className
       )}
     >

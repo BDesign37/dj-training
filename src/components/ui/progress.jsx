@@ -14,7 +14,7 @@ export function Progress({ value = 0, className }) {
         className="h-full w-full flex-1 rounded-full transition-all duration-500 ease-out"
         style={{
           transform: `translateX(-${100 - value}%)`,
-          background: 'linear-gradient(90deg, #1db954, #1ed760)',
+          background: '#1db954',
         }}
       />
     </ProgressPrimitive.Root>
