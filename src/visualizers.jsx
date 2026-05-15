@@ -846,116 +846,206 @@ export function ReadinessCheck(){
 // =============================================================
 export function PracticeTracker(){
   const rotation = [
-    {day:'Mon', focus:'EQ Bass Swap', detail:'10 attempts, same two tracks', color:'#c9a84c'},
-    {day:'Tue', focus:'Long Blend', detail:'Hold two tracks 4 min', color:'#5b9bd5'},
-    {day:'Wed', focus:'Breakdown Mix', detail:'The "third track" transition', color:'#9b6de0'},
-    {day:'Thu', focus:'FX Work', detail:'Build-up chain into drop, 5×', color:'#d45b8a'},
-    {day:'Fri', focus:'Free Session', detail:'Improvise — no structure', color:'#5bcfb0'},
-    {day:'Sat', focus:'Recorded Set', detail:'60–90 min, listen back tomorrow', color:'#c9a84c'},
-    {day:'Sun', focus:'Listen Back', detail:'Yesterday\'s set, identify 1 fix', color:'#7a6f8e'},
+    {day:'Mon', focus:'EQ Bass Swap',   detail:'10 attempts, same two tracks'},
+    {day:'Tue', focus:'Long Blend',     detail:'Hold two tracks 4 min'},
+    {day:'Wed', focus:'Breakdown Mix',  detail:'The "third track" transition'},
+    {day:'Thu', focus:'FX Work',        detail:'Build-up chain into drop, 5×'},
+    {day:'Fri', focus:'Free Session',   detail:'Improvise — no structure'},
+    {day:'Sat', focus:'Recorded Set',   detail:'60–90 min, listen back tomorrow'},
+    {day:'Sun', focus:'Listen Back',    detail:"Yesterday's set, identify 1 fix"},
   ];
-  const [log, setLog] = useLocal('practice-log', {});
-  const today = new Date(); today.setHours(0,0,0,0);
-  const toKey = d => d.toISOString().slice(0,10);
 
-  const weeks = [];
-  const start = new Date(today);
-  start.setDate(start.getDate() - (start.getDay()===0?6:start.getDay()-1));
-  start.setDate(start.getDate() - 11*7);
-  for(let w=0; w<12; w++){
-    const week = [];
-    for(let d=0; d<7; d++){
-      const dt = new Date(start);
-      dt.setDate(dt.getDate() + w*7 + d);
-      week.push(dt);
-    }
-    weeks.push(week);
-  }
+  const [log, setLog]               = useLocal('practice-log', {});
+  const [selectedKey, setSelectedKey] = useState(null); // null = today
+  const [weekOffset, setWeekOffset]  = useState(0);     // 0 = ends at current week
 
-  function calcStreak(){
-    let s = 0;
-    let d = new Date(today);
-    while(log[toKey(d)]){ s++; d.setDate(d.getDate()-1); }
+  const today    = new Date(); today.setHours(0,0,0,0);
+  const toKey    = d => d.toISOString().slice(0,10);
+  const todayKey = toKey(today);
+  const activeKey = selectedKey ?? todayKey;
+
+  // Build 12-week grid (Mon-Sun rows, weeks as rows)
+  const weeks = (() => {
+    const anchor = new Date(today);
+    const dow = anchor.getDay();
+    anchor.setDate(anchor.getDate() - (dow === 0 ? 6 : dow - 1)); // Monday of current week
+    anchor.setDate(anchor.getDate() - 11 * 7 + weekOffset * 7);
+    return Array.from({length: 12}, (_, w) =>
+      Array.from({length: 7}, (_, d) => {
+        const dt = new Date(anchor);
+        dt.setDate(anchor.getDate() + w * 7 + d);
+        return dt;
+      })
+    );
+  })();
+
+  // Stats
+  const streak = (() => {
+    let s = 0, d = new Date(today);
+    while(log[toKey(d)]){ s++; d.setDate(d.getDate() - 1); }
     return s;
-  }
-  const streak = calcStreak();
+  })();
   const totalDays = Object.values(log).filter(Boolean).length;
-  const dayIdx = (today.getDay()+6)%7;
-  const todays = rotation[dayIdx];
+  const thisWeekCount = (() => {
+    const mon = new Date(today);
+    const wd  = mon.getDay();
+    mon.setDate(mon.getDate() - (wd === 0 ? 6 : wd - 1));
+    return Array.from({length:7}, (_,i) => { const d=new Date(mon); d.setDate(mon.getDate()+i); return d; })
+      .filter(d => log[toKey(d)] && d <= today).length;
+  })();
+
+  // Nav label — Monday of the last visible week
+  const navMonday = weeks[11][0];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const navLabel = `Week of ${MONTHS[navMonday.getMonth()]} ${navMonday.getDate()}`;
+
+  // Selected cell state
+  const selDate   = new Date(activeKey + 'T00:00:00');
+  const selDow    = (selDate.getDay() + 6) % 7;
+  const selRot    = rotation[selDow];
+  const isSelToday  = activeKey === todayKey;
+  const isSelFuture = selDate > today;
+  const isSelDone   = !!log[activeKey];
+
+  const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const focusLabel = isSelToday
+    ? `Today · ${DAY_NAMES[selDow]}`
+    : isSelFuture
+    ? `Upcoming · ${DAY_NAMES[selDow]}`
+    : `Past session · ${DAY_NAMES[selDow]}`;
+  const focusLabelColor = isSelToday ? 'var(--accent)' : 'var(--muted)';
+
+  const handleMarkDone = () => {
+    if(!isSelToday) return;
+    setLog(l => ({...l, [todayKey]: !l[todayKey]}));
+  };
 
   return (
     <div className="pt-wrap">
       <style>{`
-        .pt-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:24px 0}
-        .pt-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:22px}
-        @media(max-width:700px){.pt-top{grid-template-columns:1fr}}
-        .pt-stat{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
-        .pt-stat-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
-        .pt-stat-val{font-family:'Cinzel',serif;font-size:28px;color:var(--gold);line-height:1}
-        .pt-stat-val small{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-left:6px}
-        .pt-today{background:linear-gradient(135deg, var(--card2), var(--card3));border:1px solid var(--border2);border-radius:10px;padding:18px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
-        .pt-today-day{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
-        .pt-today-focus{font-family:'Cinzel',serif;font-size:18px;color:var(--gold)}
-        .pt-today-detail{font-size:13px;color:var(--text-dim);margin-top:2px}
-        .pt-done-btn{margin-left:auto;padding:10px 18px;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:all .15s}
-        .pt-done-btn:hover{background:var(--gold);color:var(--bg)}
-        .pt-done-btn.done{background:var(--green);border-color:var(--green);color:var(--bg)}
-        .pt-cal{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
-        .pt-cal-days{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2)}
-        .pt-cal-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
-        .pt-cal-week{display:grid;grid-template-rows:repeat(7,1fr);gap:3px}
-        .pt-cell{aspect-ratio:1;background:var(--card2);border-radius:2px;border:1px solid var(--border);cursor:pointer;transition:all .1s;min-width:10px}
-        .pt-cell.done{background:var(--gold);border-color:var(--gold2);box-shadow:0 0 4px rgba(201,168,76,.6)}
-        .pt-cell.today{outline:1.5px solid var(--gold);outline-offset:1px}
+        .pt-wrap{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-lg);padding:24px;margin:24px 0;font-family:var(--font-sans)}
+
+        /* Stats */
+        .pt-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid rgba(255,255,255,.08);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+        @media(max-width:600px){.pt-stats{grid-template-columns:1fr}}
+        .pt-stat{padding:16px 20px}
+        .pt-stat+.pt-stat{border-left:1px solid rgba(255,255,255,.08)}
+        @media(max-width:600px){.pt-stat+.pt-stat{border-left:none;border-top:1px solid rgba(255,255,255,.08)}}
+        .pt-stat-label{font-family:var(--font-sans);font-size:11px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+        .pt-stat-val{font-family:var(--font-heading);font-size:28px;color:var(--text);font-weight:700;line-height:1;display:flex;align-items:baseline;gap:6px}
+        .pt-stat-unit{font-family:var(--font-sans);font-size:11px;color:var(--muted);font-weight:400}
+        .pt-week-bar{margin-top:10px;height:2px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+        .pt-week-fill{height:100%;background:var(--success);border-radius:2px;transition:width .5s var(--ease)}
+
+        /* Week nav */
+        .pt-nav{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+        .pt-nav-label{font-family:var(--font-sans);font-size:12px;color:var(--muted);flex:1;text-align:center;letter-spacing:.01em}
+        .pt-nav-btn{background:none;border:1px solid rgba(255,255,255,.15);border-radius:var(--r-sm);padding:5px 11px;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+        .pt-nav-btn:hover:not(:disabled){background:rgba(255,255,255,.06);color:var(--text-dim)}
+        .pt-nav-btn:disabled{opacity:.3;cursor:default}
+
+        /* Grid */
+        .pt-grid-scroll{overflow-x:auto;margin-bottom:20px}
+        .pt-col-headers{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;min-width:360px}
+        .pt-col-header{font-family:var(--font-sans);font-size:10px;letter-spacing:.08em;color:var(--muted);text-align:center;padding:3px 0;text-transform:uppercase}
+        .pt-grid{display:flex;flex-direction:column;gap:3px;min-width:360px}
+        .pt-week-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+        .pt-cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:4px;cursor:pointer;transition:border-color .12s var(--ease),background .12s var(--ease);padding:5px 6px 4px;min-height:38px;box-sizing:border-box}
+        .pt-cell:hover:not(.future){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14)}
+        .pt-cell.done{background:rgba(99,102,241,.55);border-color:rgba(99,102,241,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+        .pt-cell.today{border:2px solid var(--accent)}
         .pt-cell.future{opacity:.3;cursor:default}
-        .pt-cal-foot{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between}
+        .pt-cell.selected:not(.today){border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.07)}
+        .pt-cell.selected.done:not(.today){background:rgba(99,102,241,.55);border-color:rgba(255,255,255,.5)}
+        .pt-cell-day{font-family:var(--font-sans);font-size:11px;color:var(--muted);line-height:1;display:block;font-weight:400}
+        .pt-cell.today .pt-cell-day{color:var(--text);font-weight:500}
+
+        /* Drill focus */
+        .pt-focus{border-left:3px solid var(--accent);background:var(--card2);border-radius:0 var(--r) var(--r) 0;padding:20px;border-top:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+        .pt-focus-label{font-family:var(--font-sans);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+        .pt-focus-title{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:6px}
+        .pt-focus-detail{font-family:var(--font-sans);font-size:14px;color:var(--muted);line-height:1.55}
+        .pt-focus.future .pt-focus-title,.pt-focus.future .pt-focus-detail{opacity:.35}
+        .pt-focus-actions{margin-top:16px}
+        .pt-mark-btn{padding:9px 22px;background:var(--accent);color:var(--text);font-family:var(--font-sans);font-size:13px;font-weight:600;border:none;border-radius:var(--r-sm);cursor:pointer;transition:filter .15s var(--ease),opacity .15s}
+        .pt-mark-btn:hover:not(:disabled){filter:brightness(1.1)}
+        .pt-mark-btn:disabled{opacity:.3;cursor:default}
+        .pt-mark-btn.is-done{background:rgba(99,102,241,.25);border:1px solid var(--accent);color:var(--text)}
       `}</style>
 
-      <div className="pt-top">
-        <div className="pt-stat"><div className="pt-stat-label">Current Streak</div><div className="pt-stat-val">{streak}<small>days</small></div></div>
-        <div className="pt-stat"><div className="pt-stat-label">Sessions Logged</div><div className="pt-stat-val">{totalDays}<small>total</small></div></div>
-        <div className="pt-stat"><div className="pt-stat-label">This Week</div><div className="pt-stat-val">{weeks[11].filter(d=>log[toKey(d)] && d<=today).length}<small>/ 7</small></div></div>
+      {/* Stats row */}
+      <div className="pt-stats">
+        <div className="pt-stat">
+          <div className="pt-stat-label">Current Streak</div>
+          <div className="pt-stat-val">{streak}<span className="pt-stat-unit">days</span></div>
+        </div>
+        <div className="pt-stat">
+          <div className="pt-stat-label">Sessions Logged</div>
+          <div className="pt-stat-val">{totalDays}<span className="pt-stat-unit">total</span></div>
+        </div>
+        <div className="pt-stat">
+          <div className="pt-stat-label">This Week</div>
+          <div className="pt-stat-val">{thisWeekCount}<span className="pt-stat-unit">/ 7</span></div>
+          <div className="pt-week-bar">
+            <div className="pt-week-fill" style={{width:`${Math.round((thisWeekCount/7)*100)}%`}} />
+          </div>
+        </div>
       </div>
 
-      <div className="pt-today" style={{borderLeft:`3px solid ${todays.color}`}}>
-        <div>
-          <div className="pt-today-day">{['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][dayIdx]} · today's focus</div>
-          <div className="pt-today-focus">{todays.focus}</div>
-          <div className="pt-today-detail">{todays.detail}</div>
-        </div>
-        <button className={'pt-done-btn '+(log[toKey(today)]?'done':'')}
-                onClick={()=>setLog(l=>({...l,[toKey(today)]:!l[toKey(today)]}))}>
-          {log[toKey(today)] ? '✓ Done today' : 'Mark done'}
-        </button>
+      {/* Week navigation */}
+      <div className="pt-nav">
+        <button className="pt-nav-btn" onClick={() => setWeekOffset(o => o - 1)}>←</button>
+        <span className="pt-nav-label">{navLabel}</span>
+        <button className="pt-nav-btn" onClick={() => setWeekOffset(o => o + 1)} disabled={weekOffset >= 0}>→</button>
       </div>
 
-      <div className="pt-cal">
-        <div className="pt-cal-days">
-          <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+      {/* Calendar grid */}
+      <div className="pt-grid-scroll">
+        <div className="pt-col-headers">
+          {['MON','TUE','WED','THU','FRI','SAT','SUN'].map(d => (
+            <div key={d} className="pt-col-header">{d}</div>
+          ))}
         </div>
-        <div className="pt-cal-grid">
-          {weeks.map((wk,wi)=>(
-            <div className="pt-cal-week" key={wi}>
-              {wk.map((d,di)=>{
-                const k = toKey(d);
-                const isFuture = d > today;
-                const isToday = d.getTime() === today.getTime();
-                return <div key={di}
-                  className={['pt-cell', log[k]?'done':'', isToday?'today':'', isFuture?'future':''].join(' ')}
-                  title={k}
-                  onClick={()=>{ if(!isFuture) setLog(l=>({...l,[k]:!l[k]})); }}
-                />;
+        <div className="pt-grid">
+          {weeks.map((week, wi) => (
+            <div className="pt-week-row" key={wi}>
+              {week.map((d, di) => {
+                const k        = toKey(d);
+                const future   = d > today;
+                const isToday  = k === todayKey;
+                const done     = !!log[k];
+                const selected = k === activeKey;
+                const cls = ['pt-cell', done?'done':'', isToday?'today':'', future?'future':'', selected?'selected':''].filter(Boolean).join(' ');
+                return (
+                  <div key={di} className={cls} onClick={() => !future && setSelectedKey(k === todayKey ? null : k)}>
+                    <span className="pt-cell-day">{d.getDate()}</span>
+                  </div>
+                );
               })}
             </div>
           ))}
         </div>
       </div>
-      <div className="pt-cal-foot">
-        <span>12 weeks ago</span><span>today</span>
+
+      {/* Drill focus card */}
+      <div className={`pt-focus${isSelFuture ? ' future' : ''}`}>
+        <div className="pt-focus-label" style={{color: focusLabelColor}}>{focusLabel}</div>
+        <div className="pt-focus-title">{selRot.focus}</div>
+        <div className="pt-focus-detail">{selRot.detail}</div>
+        <div className="pt-focus-actions">
+          <button
+            className={`pt-mark-btn${isSelDone && isSelToday ? ' is-done' : ''}`}
+            disabled={!isSelToday}
+            onClick={handleMarkDone}
+          >
+            {isSelDone && isSelToday ? '✓ Done today' : 'Mark done'}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
 
 // =============================================================
 // 9. BPM Zones
