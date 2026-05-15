@@ -70,9 +70,11 @@ values in components.
   rgba(255,255,255,0.04) per level)
 
 ### Typography
-Fonts are loaded in `index.html` via two CDNs:
-- **Google Fonts**: `family=Outfit:wght@700;800`
-- **Fontshare**: `https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap`
+Fonts are loaded via:
+- **Google Fonts** (`index.html` `<link>`): `family=Outfit:wght@700;800`
+- **Fontshare** (`src/index.css` `@import`): `https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap`
+
+Satoshi must always be imported via the Fontshare CDN `@import` in `index.css` — not via an HTML `<link>` tag (that was the old approach).
 
 | Role                  | Font    | Weight         | CSS Variable    |
 |-----------------------|---------|----------------|-----------------|
@@ -112,7 +114,7 @@ Fonts are loaded in `index.html` via two CDNs:
 ## What To Do When Building Anything New
 
 1. Use the colour variables above — never hardcode hex
-2. Use Outfit for any new headings, Inter for body/UI text
+2. Use Outfit for any new headings, Satoshi for body/UI text
 3. Match the card and button patterns above exactly
 4. Write all UI copy in Sage+Buddy voice — check the tone shift table
 5. If adding a success state, use `var(--success)` (cyan)
