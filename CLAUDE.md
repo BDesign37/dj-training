@@ -51,12 +51,15 @@ values in components.
 
 | Variable              | Hex       | Usage                                           |
 |-----------------------|-----------|-------------------------------------------------|
-| --color-bg            | #0B0D17   | Main app background. Never pure black.          |
-| --color-surface       | #1A1D2D   | Cards, modals, drill containers, bottom sheets  |
-| --color-accent        | #6366F1   | Primary buttons, active states, logo, CTAs      |
-| --color-success       | #00E5FF   | Progress bars, streaks, success states only     |
-| --color-text          | #F3F4F6   | All primary headings and body text              |
-| --color-muted         | #9CA3AF   | Secondary text, hints, inactive icons           |
+| --bg                  | #141414   | Main app background. Neutral dark grey.         |
+| --surface             | #1C1C1C   | Cards, modals, drill containers, bottom sheets  |
+| --sidebar             | #111111   | Sidebar background                              |
+| --accent / --gold     | #6366F1   | Primary buttons, active states, logo, CTAs      |
+| --success / --green   | #00E5FF   | Progress bars, streaks, success states only     |
+| --text                | #F3F4F6   | All primary headings and body text              |
+| --muted               | #8A8D97   | Secondary text, hints, inactive icons           |
+| --border              | #262626   | Subtle borders, dividers                        |
+| --border2             | #363636   | Stronger borders, active separators             |
 
 **Colour rules:**
 - Never use pure black (#000) or pure white (#FFF)

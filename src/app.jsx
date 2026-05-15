@@ -43,9 +43,9 @@ function Home({ onNavigate, completion }) {
         .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(40,40,40,.8);position:relative;overflow:hidden}
         .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
         .hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.7}
-        .hero-title{font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:780px;text-wrap:balance}
+        .hero-title{font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.05;letter-spacing:-.03em;margin-bottom:18px;max-width:780px;text-wrap:balance}
         .hero-title em{color:var(--gold);font-style:normal;font-weight:800}
-        .hero-sub{font-size:17px;color:var(--text-dim);line-height:1.6;max-width:640px}
+        .hero-sub{font-family:var(--font-sans);font-size:var(--fs-md);color:var(--text-dim);line-height:1.65;max-width:62ch;font-weight:400;letter-spacing:.01em}
         .hero-glyph{position:absolute;top:-20px;right:0;width:140px;height:140px;opacity:.35;pointer-events:none}
         @media(max-width:900px){.hero-glyph{display:none}}
 
@@ -54,7 +54,7 @@ function Home({ onNavigate, completion }) {
         .stat{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
         .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),rgba(99,102,241,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-        .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
+        .stat-val{font-family:var(--font-mono);font-size:28px;color:var(--gold);font-weight:700;line-height:1;letter-spacing:-.02em}
         .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
 
         .phase{margin-bottom:44px}
@@ -256,7 +256,13 @@ function App() {
 
         <ScrollArea className="sb-scroll">
           <button className={'sb-btn ' + (route === 'home' ? 'active' : '')} onClick={() => go('home')}>
-            <span className="num">◆</span><span className="label">Overview</span>
+            <span className="num">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <rect x="1" y="4.5" width="8" height="5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M0 5L5 1L10 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            <span className="label">Overview</span>
           </button>
 
           {['Foundation', 'Theory', 'Craft', 'Practice'].map((phase, pi) => (
@@ -281,12 +287,9 @@ function App() {
           ))}
         </ScrollArea>
 
-        <div className="sb-footer" style={{display:'flex',flexDirection:'column',gap:6}}>
-          <span>FLX4 · Rekordbox</span>
-          <button
-            style={{background:'none',border:'none',color:'var(--muted)',fontFamily:'var(--font-mono)',fontSize:'10px',letterSpacing:'.06em',cursor:'pointer',textAlign:'left',padding:0,textDecoration:'underline',textDecorationColor:'rgba(138,138,138,.3)'}}
-            onClick={handleResetProfile}
-          >
+        <div className="sb-footer">
+          <span className="sb-footer-meta">FLX4 · Rekordbox</span>
+          <button className="sb-footer-action" onClick={handleResetProfile}>
             Change archetype
           </button>
         </div>
