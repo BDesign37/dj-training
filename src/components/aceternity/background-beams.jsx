@@ -40,9 +40,9 @@ export function BackgroundBeams({ className }) {
       >
         <defs>
           <linearGradient id="beam-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(29,185,84,0)" />
-            <stop offset="40%" stopColor="rgba(29,185,84,0.8)" />
-            <stop offset="100%" stopColor="rgba(29,185,84,0)" />
+            <stop offset="0%" stopColor="rgba(99,102,241,0)" />
+            <stop offset="40%" stopColor="rgba(99,102,241,0.8)" />
+            <stop offset="100%" stopColor="rgba(99,102,241,0)" />
           </linearGradient>
           <radialGradient id="beam-fade" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="white" stopOpacity="1" />

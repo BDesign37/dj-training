@@ -244,7 +244,7 @@ function App() {
       <nav id="sidebar" className={sbOpen ? 'open' : ''}>
         <div className="sb-header">
           <div className="sb-mark">
-            <img src="/dj-training/assets/logo.svg" alt="Crate." height="32" style={{display:'block'}} />
+            <img src="/dj-training/assets/logo.svg" alt="Crate." width={150} style={{display:'block', height:'auto'}} />
           </div>
           <div className="sb-sub">{profile.tagline}</div>
           <div className="sb-progress-row">

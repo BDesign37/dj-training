@@ -7,16 +7,16 @@ export function ShimmerBorder({ children, className }) {
       <div
         className="absolute inset-0 rounded-xl"
         style={{
-          background: 'conic-gradient(from 0deg, transparent 0deg, rgba(29,185,84,0.55) 60deg, rgba(29,185,84,0.20) 120deg, transparent 180deg, transparent 360deg)',
+          background: 'conic-gradient(from 0deg, transparent 0deg, rgba(99,102,241,0.55) 60deg, rgba(99,102,241,0.20) 120deg, transparent 180deg, transparent 360deg)',
           animation: 'spin-slow 4s linear infinite',
         }}
       />
       {/* Subtle static inner glow */}
       <div
         className="absolute inset-0 rounded-xl"
-        style={{ background: 'linear-gradient(135deg, rgba(29,185,84,0.06), transparent 50%, rgba(155,109,224,0.04))' }}
+        style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.06), transparent 50%, rgba(155,109,224,0.04))' }}
       />
-      <div className="relative rounded-[11px] bg-[#181818]">
+      <div className="relative rounded-[11px] bg-[var(--surface)]">
         {children}
       </div>
       <style>{`@keyframes spin-slow { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>

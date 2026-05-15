@@ -45,14 +45,14 @@ export function MovingBorder({ children, duration = 3000, className, containerCl
             top: 0,
             left: 0,
             transform,
-            background: 'radial-gradient(circle at center, rgba(29,185,84,0.9) 0%, rgba(29,185,84,0.3) 40%, transparent 70%)',
+            background: 'radial-gradient(circle at center, rgba(99,102,241,0.9) 0%, rgba(99,102,241,0.3) 40%, transparent 70%)',
           }}
         />
       </div>
       {/* Static border fallback */}
       <div
         className="absolute inset-0 opacity-20"
-        style={{ borderRadius: rx, border: '1px solid rgba(29,185,84,0.4)' }}
+        style={{ borderRadius: rx, border: '1px solid rgba(99,102,241,0.4)' }}
       />
       {/* Content */}
       <div className={cn('relative', className)} style={{ borderRadius: rx - 1 }}>
