@@ -52,7 +52,7 @@ function Home({ onNavigate, completion }) {
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
         .stat{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
-        .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(29,185,84,.2));border-radius:1px}
+        .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),rgba(99,102,241,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
         .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
@@ -72,7 +72,7 @@ function Home({ onNavigate, completion }) {
         .ch-card-title{font-family:var(--font-heading);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:700;margin-top:2px}
         .ch-card-sub{font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;margin-top:auto;padding-top:8px}
         .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all var(--dur) var(--ease)}
-        .ch-card.done .ch-card-status{background:var(--green);border-color:var(--green)}
+        .ch-card.done .ch-card-status{background:var(--success);border-color:var(--success)}
         .ch-card.done .ch-card-status svg{display:block}
         .ch-card-status svg{width:10px;height:10px;display:none}
 
@@ -244,7 +244,7 @@ function App() {
       <nav id="sidebar" className={sbOpen ? 'open' : ''}>
         <div className="sb-header">
           <div className="sb-mark">
-            <img src="/dj-training/assets/logo.svg" alt="Crate." height="28" style={{display:'block'}} />
+            <img src="/dj-training/assets/logo.svg" alt="Crate." height="32" style={{display:'block'}} />
           </div>
           <div className="sb-sub">{profile.tagline}</div>
           <div className="sb-progress-row">
