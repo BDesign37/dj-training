@@ -3,7 +3,7 @@
 // =============================================================
 
 import { useState } from 'react';
-import { BPMZones, FLX4Controller, BassSwapVisualizer, CamelotWheel, PhraseCounter, TrackAnatomy, EnergyArc, ReadinessCheck, PracticeTracker, MilestonesTracker } from './visualizers';
+import { BPMZones, FLX4Controller, BassSwapVisualizer, CamelotWheel, PhraseCounter, TrackAnatomy, EnergyArc, ReadinessCheck, PracticeTracker, MilestonesTracker, LongBlendVisualizer, BreakdownMixVisualizer, FilterBlendVisualizer, LoopExtensionVisualizer, CutTransitionVisualizer, BuildUpChainVisualizer } from './visualizers';
 
 const Section = ({title, children}) => (
   <>
@@ -342,6 +342,8 @@ function Ch_Mixing(){
     <BassSwapVisualizer/>
 
     <h2>The Long Melodic Blend (3–6 Minutes)</h2>
+    <p>Both faders up for minutes — A's HI fades first, B's enters softly. Crossover at bar 48 when B takes the low end. The slowest, most invisible transition in prog psy.</p>
+    <LongBlendVisualizer/>
     <Card variant="green" title="Frequency assignment strategy">
       <ul className="checklist" style={{margin:0}}>
         <li><span className="check-icon">◆</span><span><strong>Outgoing track:</strong> keep LOW, fade out MID, fade out HI gradually</span></li>
@@ -351,6 +353,8 @@ function Ch_Mixing(){
     </Card>
 
     <h2>The Breakdown Mix — Your Signature Move</h2>
+    <p>A hits its breakdown — kick gone, pure melody. Bring B in under that melody. B's drop at bar 32 lands like a new beginning.</p>
+    <BreakdownMixVisualizer/>
     <pre>{`Outgoing track:  [GROOVE] → [BREAKDOWN — no kick, pure melody]
 Incoming track:               [INTRO — kick only, bass cut]
                                         ↑
@@ -361,6 +365,18 @@ Result: A's melody + B's kick = "Third Track" (exists only in your mix)
 Continue: A's melody fades as B's bass enters.
 B drops into its groove. A's atmospheric tail fades.
 B is now solo. Nobody heard a "mix" — they heard a journey.`}</pre>
+
+    <h2>The Filter Blend — Spacious Frequency Exchange</h2>
+    <p>Apply HPF (high-pass filter) to the outgoing track — its low end disappears progressively. Meanwhile open up the LPF on the incoming track so B enters muffled, then blooms into full frequency.</p>
+    <FilterBlendVisualizer/>
+
+    <h2>The Loop Extension — Buy Time at Any Moment</h2>
+    <p>Beat-loop A's strongest 4-bar section and blend B in normally. Exit the loop at bar 24 for a seamless handoff. Use this whenever A's outro is too short for a full blend.</p>
+    <LoopExtensionVisualizer/>
+
+    <h2>The Cut Transition — Intentional Reset</h2>
+    <p>No blend. Full stop, then B at full volume. Use 1–2 per set maximum — it must read as intention, not error.</p>
+    <CutTransitionVisualizer/>
 
     <h2>Transition Types</h2>
     <table className="data-table">
@@ -408,15 +424,9 @@ function Ch_FX(){
     <h3>5. Roll</h3>
     <p>For the last 2–4 bars before a major drop. Set to 1/4 or 1/8 for prog psy (less choppy than 1/16). Creates tension that the drop releases.</p>
 
-    <h2>The 16-Bar Build-Up Chain</h2>
-    <pre>{`Bar  1–8:   CFX filter (HPF) on outgoing, slowly turn right.
-            Echo on incoming: Level 20%, Beat 1/1.
-Bar  9–12:  Echo Level rises to 30%. CFX continues.
-Bar 13–14:  CFX at far right (full HPF on outgoing).
-            Echo Beat changes to 1/2.
-Bar 15:     Echo Level to 50%. Roll activates for 2 bars.
-Bar 16→1:   Everything releases on the downbeat.
-            CFX returns to centre. Echo killed. Drop hits clean.`}</pre>
+    <h2>The 16-Bar Build-Up Chain — Interactive Walkthrough</h2>
+    <p>Watch the CFX filter strip A's low end as echo tension builds on B. Everything releases on bar 16 — the drop hits clean.</p>
+    <BuildUpChainVisualizer/>
 
     <Card variant="blue" title="FLX4 Limitation — Work With It">
       <p style={{margin:0}}>The FLX4 runs one Beat FX at a time. This is fine for prog psy — the genre's FX language is subtle. One perfect echo bloom in a breakdown is worth more than six mediocre FX moments per hour. Constraint forces musicality.</p>

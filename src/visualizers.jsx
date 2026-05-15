@@ -1043,3 +1043,780 @@ export function MilestonesTracker(){
     </div>
   );
 }
+
+// =============================================================
+// Shared helpers for mix visualizers
+// =============================================================
+function mkKnob(v, color){
+  const angle = -135 + v*270;
+  const x2 = 25 + 16*Math.cos((angle-90)*Math.PI/180);
+  const y2 = 25 + 16*Math.sin((angle-90)*Math.PI/180);
+  return (
+    <svg viewBox="0 0 50 50" width="46" height="46">
+      <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
+      <path d={`M 25 25 L ${x2} ${y2}`} stroke={color} strokeWidth="3" strokeLinecap="round" opacity={0.3 + 0.7*v}/>
+      <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}/>
+    </svg>
+  );
+}
+
+function MixTimeline({bar, total, events, onSeek}){
+  return (
+    <div style={{position:'relative',height:36,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:6,cursor:'pointer',marginTop:6}}
+         onClick={(e)=>{ const r = e.currentTarget.getBoundingClientRect(); onSeek(((e.clientX-r.left)/r.width)*total); }}>
+      <style>{`
+        .mx-tl-mark{position:absolute;top:0;bottom:0;width:1px;background:var(--border2)}
+        .mx-tl-label{position:absolute;top:18px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+        .mx-tl-label.crit{color:var(--gold)}
+        .mx-tl-head{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+      `}</style>
+      {events.map(ev=>(
+        <span key={ev.b}>
+          <div className="mx-tl-mark" style={{left:(ev.b/total*100)+'%'}}/>
+          <div className={'mx-tl-label '+(ev.detail.startsWith('★')?'crit':'')} style={{left:(ev.b/total*100)+'%'}}>{ev.detail}</div>
+        </span>
+      ))}
+      <div className="mx-tl-head" style={{left:(Math.min(bar,total)/total*100)+'%'}}/>
+    </div>
+  );
+}
+
+// =============================================================
+// Long Melodic Blend Visualizer (64 bars)
+// =============================================================
+export function LongBlendVisualizer(){
+  const TOTAL = 64;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const aHi  = Math.max(0, 1 - Math.max(0, bar-16)/32);
+  const aMid = Math.max(0, 1 - Math.max(0, bar-32)/24);
+  const aLow = bar < 46 ? 1 : Math.max(0, 1-(bar-46)/2);
+  const aFad = Math.max(0, 1 - Math.max(0, bar-52)/12);
+  const bHi  = Math.min(1, Math.max(0, (bar-4)/20));
+  const bMid = Math.min(1, Math.max(0, (bar-16)/24));
+  const bLow = bar < 46 ? 0 : Math.min(1, (bar-46)/2);
+  const bFad = Math.min(1, 0.5 + Math.max(0, bar-8)/32);
+
+  const event =
+    bar < 8 ? 'Both tracks playing — blend beginning' :
+    bar < 16 ? "B's HI enters softly over A" :
+    bar < 32 ? 'A HI fading — B HI established' :
+    bar < 48 ? 'A MID thins out — B MID rising' :
+    bar < 52 ? '★ Crossover — B takes the low end on bar 48' :
+    bar < 60 ? 'A fading in last stretch' :
+    bar < 64 ? 'B is lead — A atmospheric tail' :
+    'Transition complete — B is solo';
+
+  const tlEvents = [
+    {b:8,  detail:'B HI enters'},
+    {b:24, detail:'B MID rises'},
+    {b:48, detail:'★ Crossover'},
+    {b:56, detail:'A fades'},
+    {b:64, detail:'Done'},
+  ];
+
+  return (
+    <div className="lb-wrap">
+      <style>{`
+        .lb-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .lb-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.lb-decks{grid-template-columns:1fr}}
+        .lb-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .lb-deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .lb-deck-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em}
+        .lb-deck-fader{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+        .lb-fader-bar{width:60px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+        .lb-fader-fill{height:100%;background:var(--gold);transition:width .1s linear}
+        .lb-eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .lb-eq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+        .lb-eq-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+        .lb-eq-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+        .lb-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+        .lb-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .lb-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .lb-play:hover{background:var(--gold2)}
+        .lb-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .lb-scrub input{flex:1;accent-color:var(--gold)}
+        .lb-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .lb-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+      `}</style>
+
+      <div className="lb-controls">
+        <button className="lb-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="lb-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.1" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="lb-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="lb-decks">
+        <div className="lb-deck">
+          <div className="lb-deck-head">
+            <div className="lb-deck-name" style={{color:'#5b9bd5'}}>TRACK A · outgoing</div>
+            <div className="lb-deck-fader"><span>Fader</span><div className="lb-fader-bar"><div className="lb-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="lb-eqs">
+            <div className="lb-eq">{mkKnob(aHi,'#5b9bd5')}<div className="lb-eq-label">HI</div><div className="lb-eq-val">{Math.round(aHi*100)}%</div></div>
+            <div className="lb-eq">{mkKnob(aMid,'#5b9bd5')}<div className="lb-eq-label">MID</div><div className="lb-eq-val">{Math.round(aMid*100)}%</div></div>
+            <div className="lb-eq">{mkKnob(aLow,'#5b9bd5')}<div className="lb-eq-label">LOW</div><div className="lb-eq-val">{Math.round(aLow*100)}%</div></div>
+          </div>
+          <div className="lb-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi)} color="#5b9bd5"/></div>
+        </div>
+
+        <div className="lb-deck">
+          <div className="lb-deck-head">
+            <div className="lb-deck-name" style={{color:'#9b6de0'}}>TRACK B · incoming</div>
+            <div className="lb-deck-fader"><span>Fader</span><div className="lb-fader-bar"><div className="lb-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="lb-eqs">
+            <div className="lb-eq">{mkKnob(bHi,'#9b6de0')}<div className="lb-eq-label">HI</div><div className="lb-eq-val">{Math.round(bHi*100)}%</div></div>
+            <div className="lb-eq">{mkKnob(bMid,'#9b6de0')}<div className="lb-eq-label">MID</div><div className="lb-eq-val">{Math.round(bMid*100)}%</div></div>
+            <div className="lb-eq">{mkKnob(bLow,'#9b6de0')}<div className="lb-eq-label">LOW</div><div className="lb-eq-val">{Math.round(bLow*100)}%</div></div>
+          </div>
+          <div className="lb-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className="lb-event" style={{marginTop:14}}>{event}</div>
+    </div>
+  );
+}
+
+// =============================================================
+// Breakdown Mix Visualizer (48 bars)
+// =============================================================
+export function BreakdownMixVisualizer(){
+  const TOTAL = 48;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const aLow = bar < 16 ? 1 : 0;
+  const aMid = bar < 16 ? 1 : Math.max(0, 0.3 - Math.max(0,bar-32)/8);
+  const aHi  = bar < 16 ? 1 : Math.max(0, 0.5 - Math.max(0,bar-32)/8);
+  const aFad = Math.max(0, 1 - Math.max(0, bar-32)/8);
+  const bLow = bar < 24 ? 0 : (bar < 32 ? Math.max(0,(bar-28)/4) : 1);
+  const bMid = Math.min(1, Math.max(0, (bar-16)/16));
+  const bHi  = Math.min(1, Math.max(0, (bar-8)/12));
+  const bFad = Math.min(1, Math.max(0, (bar-8)/8));
+
+  const event =
+    bar < 8 ? 'A in full groove — prepare incoming track' :
+    bar < 16 ? "B's HI layers in — kick mix building" :
+    bar < 24 ? '★ A hits breakdown — kick gone, pure melody' :
+    bar < 32 ? "B's kick and intro over A's melody" :
+    bar < 40 ? '★ B drops — full energy, A melody fades' :
+    bar < 48 ? 'A fading — B is solo groove' :
+    'Done — cleanest transition in prog psy';
+
+  const tlEvents = [
+    {b:16, detail:'A breakdown'},
+    {b:24, detail:'B intro'},
+    {b:32, detail:'★ B drops'},
+    {b:40, detail:'A fades'},
+    {b:48, detail:'Done'},
+  ];
+
+  return (
+    <div className="bm-wrap">
+      <style>{`
+        .bm-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .bm-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.bm-decks{grid-template-columns:1fr}}
+        .bm-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .bm-deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .bm-deck-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em}
+        .bm-deck-fader{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+        .bm-fader-bar{width:60px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+        .bm-fader-fill{height:100%;background:var(--gold);transition:width .1s linear}
+        .bm-eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .bm-eq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+        .bm-eq-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+        .bm-eq-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+        .bm-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+        .bm-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .bm-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .bm-play:hover{background:var(--gold2)}
+        .bm-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .bm-scrub input{flex:1;accent-color:var(--gold)}
+        .bm-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .bm-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+        .bm-breakdown-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;margin-left:8px;background:rgba(155,109,224,.15);color:#9b6de0;border:1px solid rgba(155,109,224,.3)}
+      `}</style>
+
+      <div className="bm-controls">
+        <button className="bm-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="bm-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.1" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="bm-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="bm-decks">
+        <div className="bm-deck">
+          <div className="bm-deck-head">
+            <div className="bm-deck-name" style={{color:'#5b9bd5'}}>
+              TRACK A · outgoing
+              {bar >= 16 && bar < 32 && <span className="bm-breakdown-tag">BREAKDOWN</span>}
+            </div>
+            <div className="bm-deck-fader"><span>Fader</span><div className="bm-fader-bar"><div className="bm-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="bm-eqs">
+            <div className="bm-eq">{mkKnob(aHi,'#5b9bd5')}<div className="bm-eq-label">HI</div><div className="bm-eq-val">{Math.round(aHi*100)}%</div></div>
+            <div className="bm-eq">{mkKnob(aMid,'#5b9bd5')}<div className="bm-eq-label">MID</div><div className="bm-eq-val">{Math.round(aMid*100)}%</div></div>
+            <div className="bm-eq">{mkKnob(aLow,'#5b9bd5')}<div className="bm-eq-label">LOW</div><div className="bm-eq-val">{Math.round(aLow*100)}%</div></div>
+          </div>
+          <div className="bm-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi,0.05)} color="#5b9bd5"/></div>
+        </div>
+
+        <div className="bm-deck">
+          <div className="bm-deck-head">
+            <div className="bm-deck-name" style={{color:'#9b6de0'}}>TRACK B · incoming</div>
+            <div className="bm-deck-fader"><span>Fader</span><div className="bm-fader-bar"><div className="bm-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="bm-eqs">
+            <div className="bm-eq">{mkKnob(bHi,'#9b6de0')}<div className="bm-eq-label">HI</div><div className="bm-eq-val">{Math.round(bHi*100)}%</div></div>
+            <div className="bm-eq">{mkKnob(bMid,'#9b6de0')}<div className="bm-eq-label">MID</div><div className="bm-eq-val">{Math.round(bMid*100)}%</div></div>
+            <div className="bm-eq">{mkKnob(bLow,'#9b6de0')}<div className="bm-eq-label">LOW</div><div className="bm-eq-val">{Math.round(bLow*100)}%</div></div>
+          </div>
+          <div className="bm-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className="bm-event" style={{marginTop:14}}>{event}</div>
+    </div>
+  );
+}
+
+// =============================================================
+// Filter Blend Visualizer (32 bars)
+// =============================================================
+export function FilterBlendVisualizer(){
+  const TOTAL = 32;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const aHpf = Math.min(1, bar/20);
+  const aLow = Math.max(0, 1 - bar/16);
+  const aMid = Math.max(0, 1 - Math.max(0,bar-8)/16);
+  const aHi  = Math.max(0, 1 - bar/32);
+  const aFad = 1;
+  const bLpf = Math.min(1, Math.max(0,(bar-4)/16));
+  const bHi  = Math.min(1, Math.max(0,(bar-8)/12));
+  const bMid = Math.min(1, Math.max(0,(bar-4)/16));
+  const bLow = Math.min(1, Math.max(0,(bar-16)/6));
+  const bFad = Math.min(1, Math.max(0,(bar-2)/8));
+
+  const event =
+    bar < 4 ? 'A playing clean — B cued, LPF closed' :
+    bar < 8 ? 'B fader up — sounds muffled (LPF blocking HI)' :
+    bar < 16 ? 'A sounds thin (HPF cutting LOW). B muffled bass.' :
+    bar < 20 ? '★ Filter crossover zone — A thin, B opening up' :
+    bar < 28 ? 'B fully open — A is ghostly atmosphere' :
+    bar < 32 ? 'A fades — B in full frequency' :
+    'Done — spacious frequency blend complete';
+
+  const tlEvents = [
+    {b:8,  detail:'B starts muffled'},
+    {b:16, detail:'A sounds thin'},
+    {b:20, detail:'★ Filter crossover'},
+    {b:28, detail:'B fully open'},
+    {b:32, detail:'Done'},
+  ];
+
+  return (
+    <div className="fb-wrap">
+      <style>{`
+        .fb-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .fb-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.fb-decks{grid-template-columns:1fr}}
+        .fb-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .fb-deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .fb-deck-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em}
+        .fb-deck-fader{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+        .fb-fader-bar{width:60px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+        .fb-fader-fill{height:100%;background:var(--gold);transition:width .1s linear}
+        .fb-eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .fb-eq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+        .fb-eq-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+        .fb-eq-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+        .fb-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+        .fb-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .fb-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .fb-play:hover{background:var(--gold2)}
+        .fb-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .fb-scrub input{flex:1;accent-color:var(--gold)}
+        .fb-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .fb-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+        .fb-filter-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;margin-left:8px}
+        .fb-hpf{background:rgba(91,155,213,.15);color:#5b9bd5;border:1px solid rgba(91,155,213,.3)}
+        .fb-lpf{background:rgba(155,109,224,.15);color:#9b6de0;border:1px solid rgba(155,109,224,.3)}
+      `}</style>
+
+      <div className="fb-controls">
+        <button className="fb-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="fb-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.1" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="fb-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="fb-decks">
+        <div className="fb-deck">
+          <div className="fb-deck-head">
+            <div className="fb-deck-name" style={{color:'#5b9bd5'}}>
+              TRACK A · outgoing
+              {aHpf > 0.05 && <span className="fb-filter-tag fb-hpf">HPF {Math.round(aHpf*100)}%</span>}
+            </div>
+            <div className="fb-deck-fader"><span>Fader</span><div className="fb-fader-bar"><div className="fb-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="fb-eqs">
+            <div className="fb-eq">{mkKnob(aHi,'#5b9bd5')}<div className="fb-eq-label">HI</div><div className="fb-eq-val">{Math.round(aHi*100)}%</div></div>
+            <div className="fb-eq">{mkKnob(aMid,'#5b9bd5')}<div className="fb-eq-label">MID</div><div className="fb-eq-val">{Math.round(aMid*100)}%</div></div>
+            <div className="fb-eq">{mkKnob(aLow,'#5b9bd5')}<div className="fb-eq-label">LOW</div><div className="fb-eq-val">{Math.round(aLow*100)}%</div></div>
+          </div>
+          <div className="fb-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi)} color="#5b9bd5"/></div>
+        </div>
+
+        <div className="fb-deck">
+          <div className="fb-deck-head">
+            <div className="fb-deck-name" style={{color:'#9b6de0'}}>
+              TRACK B · incoming
+              {bLpf > 0.05 && bHi < 0.95 && <span className="fb-filter-tag fb-lpf">LPF open {Math.round(bLpf*100)}%</span>}
+            </div>
+            <div className="fb-deck-fader"><span>Fader</span><div className="fb-fader-bar"><div className="fb-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="fb-eqs">
+            <div className="fb-eq">{mkKnob(bHi,'#9b6de0')}<div className="fb-eq-label">HI</div><div className="fb-eq-val">{Math.round(bHi*100)}%</div></div>
+            <div className="fb-eq">{mkKnob(bMid,'#9b6de0')}<div className="fb-eq-label">MID</div><div className="fb-eq-val">{Math.round(bMid*100)}%</div></div>
+            <div className="fb-eq">{mkKnob(bLow,'#9b6de0')}<div className="fb-eq-label">LOW</div><div className="fb-eq-val">{Math.round(bLow*100)}%</div></div>
+          </div>
+          <div className="fb-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className="fb-event" style={{marginTop:14}}>{event}</div>
+    </div>
+  );
+}
+
+// =============================================================
+// Loop Extension Visualizer (32 bars)
+// =============================================================
+export function LoopExtensionVisualizer(){
+  const TOTAL = 32;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const isLooping = bar < 24;
+  const loopPhase = (bar % 4) / 4;
+  const aLow = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
+  const aMid = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
+  const aHi  = bar < 24 ? 0.7 : Math.max(0, 0.7-(bar-24)/4);
+  const aFad = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
+  const bLow = bar < 8 ? 0 : Math.min(1, (bar-8)/8);
+  const bMid = Math.min(1, Math.max(0,(bar-4)/12));
+  const bHi  = Math.min(1, Math.max(0,(bar-2)/8));
+  const bFad = Math.min(1, Math.max(0,(bar-4)/12));
+
+  const loopActiveHeight = isLooping ? (0.85 + 0.15*Math.sin(loopPhase*Math.PI*2)) : 1;
+
+  const event =
+    bar < 4 ? 'A looped on best 4 bars — buying time for B to cue' :
+    bar < 16 ? "B entering — riding on A's loop" :
+    bar < 24 ? 'Blend locked — loop cycling, B gaining energy' :
+    bar < 28 ? '★ Loop exit — A drops to full outro or silence' :
+    bar < 32 ? 'B is solo — loop extension complete' :
+    'Done — seamless extension achieved';
+
+  const tlEvents = [
+    {b:4,  detail:'B entering'},
+    {b:16, detail:'Blend locked'},
+    {b:24, detail:'★ Loop exit'},
+    {b:28, detail:'B solo'},
+    {b:32, detail:'Done'},
+  ];
+
+  return (
+    <div className="le-wrap">
+      <style>{`
+        .le-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .le-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.le-decks{grid-template-columns:1fr}}
+        .le-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .le-deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .le-deck-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em}
+        .le-deck-fader{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+        .le-fader-bar{width:60px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+        .le-fader-fill{height:100%;background:var(--gold);transition:width .1s linear}
+        .le-eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .le-eq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+        .le-eq-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+        .le-eq-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+        .le-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden;position:relative}
+        .le-loop-bracket{position:absolute;top:4px;left:4px;right:4px;bottom:4px;border:1px dashed rgba(29,185,84,.4);border-radius:3px;pointer-events:none}
+        .le-loop-label{position:absolute;top:2px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(29,185,84,.7);letter-spacing:.08em}
+        .le-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .le-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .le-play:hover{background:var(--gold2)}
+        .le-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .le-scrub input{flex:1;accent-color:var(--gold)}
+        .le-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .le-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+        .le-loop-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;margin-left:8px;background:rgba(29,185,84,.12);color:var(--gold);border:1px solid rgba(29,185,84,.3)}
+      `}</style>
+
+      <div className="le-controls">
+        <button className="le-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="le-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.1" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="le-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="le-decks">
+        <div className="le-deck">
+          <div className="le-deck-head">
+            <div className="le-deck-name" style={{color:'#5b9bd5'}}>
+              TRACK A · outgoing
+              {isLooping && <span className="le-loop-tag">LOOP ↻</span>}
+            </div>
+            <div className="le-deck-fader"><span>Fader</span><div className="le-fader-bar"><div className="le-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="le-eqs">
+            <div className="le-eq">{mkKnob(aHi,'#5b9bd5')}<div className="le-eq-label">HI</div><div className="le-eq-val">{Math.round(aHi*100)}%</div></div>
+            <div className="le-eq">{mkKnob(aMid,'#5b9bd5')}<div className="le-eq-label">MID</div><div className="le-eq-val">{Math.round(aMid*100)}%</div></div>
+            <div className="le-eq">{mkKnob(aLow,'#5b9bd5')}<div className="le-eq-label">LOW</div><div className="le-eq-val">{Math.round(aLow*100)}%</div></div>
+          </div>
+          <div className="le-wave">
+            {isLooping && <><div className="le-loop-bracket"/><div className="le-loop-label">4-BAR LOOP</div></>}
+            <WaveBars active={aFad*Math.max(aLow,aMid,aHi)*loopActiveHeight} color="#5b9bd5"/>
+          </div>
+        </div>
+
+        <div className="le-deck">
+          <div className="le-deck-head">
+            <div className="le-deck-name" style={{color:'#9b6de0'}}>TRACK B · incoming</div>
+            <div className="le-deck-fader"><span>Fader</span><div className="le-fader-bar"><div className="le-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="le-eqs">
+            <div className="le-eq">{mkKnob(bHi,'#9b6de0')}<div className="le-eq-label">HI</div><div className="le-eq-val">{Math.round(bHi*100)}%</div></div>
+            <div className="le-eq">{mkKnob(bMid,'#9b6de0')}<div className="le-eq-label">MID</div><div className="le-eq-val">{Math.round(bMid*100)}%</div></div>
+            <div className="le-eq">{mkKnob(bLow,'#9b6de0')}<div className="le-eq-label">LOW</div><div className="le-eq-val">{Math.round(bLow*100)}%</div></div>
+          </div>
+          <div className="le-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className="le-event" style={{marginTop:14}}>{event}</div>
+    </div>
+  );
+}
+
+// =============================================================
+// Cut Transition Visualizer (8 bars)
+// =============================================================
+export function CutTransitionVisualizer(){
+  const TOTAL = 8;
+  const CUT = 4;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const aLow = bar < CUT ? 1 : 0;
+  const aMid = bar < CUT ? 1 : 0;
+  const aHi  = bar < CUT ? 1 : 0;
+  const aFad = bar < CUT ? 1 : 0;
+  const bLow = bar < CUT ? 0 : 1;
+  const bMid = bar < CUT ? 0 : 1;
+  const bHi  = bar < CUT ? 0 : 1;
+  const bFad = bar < CUT ? 0 : 1;
+
+  const event =
+    bar < CUT ? 'A at full — no blending. Cue B perfectly.' :
+    bar < TOTAL ? '★ CUT — instant silence then B at full volume' :
+    'Done — room reset complete';
+
+  const tlEvents = [
+    {b:4, detail:'★ CUT'},
+    {b:8, detail:'Done'},
+  ];
+
+  return (
+    <div className="ct-wrap">
+      <style>{`
+        .ct-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .ct-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.ct-decks{grid-template-columns:1fr}}
+        .ct-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .ct-deck-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+        .ct-deck-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em}
+        .ct-deck-fader{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+        .ct-fader-bar{width:60px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+        .ct-fader-fill{height:100%;background:var(--gold);transition:width .05s linear}
+        .ct-eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .ct-eq{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)}
+        .ct-eq-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+        .ct-eq-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)}
+        .ct-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+        .ct-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .ct-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .ct-play:hover{background:var(--gold2)}
+        .ct-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .ct-scrub input{flex:1;accent-color:var(--gold)}
+        .ct-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .ct-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+        .ct-warning{margin-top:10px;padding:8px 14px;border-radius:6px;background:rgba(255,170,50,.06);border:1px solid rgba(255,170,50,.25);font-family:'JetBrains Mono',monospace;font-size:11px;color:#ffaa32;letter-spacing:.04em}
+      `}</style>
+
+      <div className="ct-controls">
+        <button className="ct-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="ct-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.05" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="ct-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="ct-decks">
+        <div className="ct-deck">
+          <div className="ct-deck-head">
+            <div className="ct-deck-name" style={{color:'#5b9bd5'}}>TRACK A · outgoing</div>
+            <div className="ct-deck-fader"><span>Fader</span><div className="ct-fader-bar"><div className="ct-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="ct-eqs">
+            <div className="ct-eq">{mkKnob(aHi,'#5b9bd5')}<div className="ct-eq-label">HI</div><div className="ct-eq-val">{Math.round(aHi*100)}%</div></div>
+            <div className="ct-eq">{mkKnob(aMid,'#5b9bd5')}<div className="ct-eq-label">MID</div><div className="ct-eq-val">{Math.round(aMid*100)}%</div></div>
+            <div className="ct-eq">{mkKnob(aLow,'#5b9bd5')}<div className="ct-eq-label">LOW</div><div className="ct-eq-val">{Math.round(aLow*100)}%</div></div>
+          </div>
+          <div className="ct-wave"><WaveBars active={aFad} color="#5b9bd5"/></div>
+        </div>
+
+        <div className="ct-deck">
+          <div className="ct-deck-head">
+            <div className="ct-deck-name" style={{color:'#9b6de0'}}>TRACK B · incoming</div>
+            <div className="ct-deck-fader"><span>Fader</span><div className="ct-fader-bar"><div className="ct-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
+          </div>
+          <div className="ct-eqs">
+            <div className="ct-eq">{mkKnob(bHi,'#9b6de0')}<div className="ct-eq-label">HI</div><div className="ct-eq-val">{Math.round(bHi*100)}%</div></div>
+            <div className="ct-eq">{mkKnob(bMid,'#9b6de0')}<div className="ct-eq-label">MID</div><div className="ct-eq-val">{Math.round(bMid*100)}%</div></div>
+            <div className="ct-eq">{mkKnob(bLow,'#9b6de0')}<div className="ct-eq-label">LOW</div><div className="ct-eq-val">{Math.round(bLow*100)}%</div></div>
+          </div>
+          <div className="ct-wave"><WaveBars active={bFad} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className="ct-event" style={{marginTop:14}}>{event}</div>
+      <div className="ct-warning">&#9888; Use 1&#8211;2 per set maximum &#8212; more than that and it reads as a mistake, not intention.</div>
+    </div>
+  );
+}
+
+// =============================================================
+// 16-Bar Build-Up Chain Visualizer (Ch 8 — FX)
+// =============================================================
+export function BuildUpChainVisualizer(){
+  const TOTAL = 16;
+  const [bar, setBar] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const rafRef = useRef();
+  const lastRef = useRef();
+  useEffect(()=>{
+    if(!playing) return;
+    lastRef.current = performance.now();
+    const tick = (t)=>{
+      const dt = (t - lastRef.current)/1000;
+      lastRef.current = t;
+      setBar(b => {
+        const nb = b + dt*1.6;
+        if(nb >= TOTAL){ setPlaying(false); return TOTAL; }
+        return nb;
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[playing]);
+
+  const hpf     = Math.min(1, bar/14);
+  const echoL   = bar < 8 ? 0.2 : bar < 12 ? 0.2+0.1*(bar-8)/4 : bar < 15 ? 0.3 : bar < 16 ? 0.5 : 0;
+  const echoBeat = bar < 12 ? '1/1' : '1/2';
+  const roll    = bar >= 14 ? Math.min(1,(bar-14)/1) : 0;
+  const released = bar >= 16;
+
+  const event =
+    bar < 8  ? 'CFX HPF rising &#8212; outgoing track thinning. Echo at Level 20% / Beat 1/1.' :
+    bar < 12 ? 'Echo Level climbs to 30%. CFX continues up. Tension building.' :
+    bar < 14 ? 'CFX at far right &#8212; outgoing stripped bare. Echo Beat cuts to 1/2.' :
+    bar < 15 ? 'Echo Level to 50%. One bar left.' :
+    bar < 16 ? '&#9733; Roll activated &#8212; 2-bar roll intensifying drop' :
+    'RELEASE &#8212; everything drops on bar 1. Drop hits clean.';
+
+  const tlEvents = [
+    {b:8,  detail:'Echo 30%'},
+    {b:12, detail:'Echo beat 1/2'},
+    {b:14, detail:'CFX far right'},
+    {b:15, detail:'★ Roll on'},
+    {b:16, detail:'RELEASE'},
+  ];
+
+  const buKnob = (v, color, label, extra) => (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,padding:'8px',background:'var(--bg)',borderRadius:6,border:'1px solid var(--border)'}}>
+      {mkKnob(v, color)}
+      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',letterSpacing:'.12em',color:'var(--muted)'}}>{label}</div>
+      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'11px',color:'var(--gold)'}}>{extra !== undefined ? extra : Math.round(v*100)+'%'}</div>
+    </div>
+  );
+
+  return (
+    <div className="bu-wrap">
+      <style>{`
+        .bu-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
+        .bu-decks{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        @media(max-width:700px){.bu-decks{grid-template-columns:1fr}}
+        .bu-deck{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px}
+        .bu-deck-head{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em;margin-bottom:14px}
+        .bu-controls-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .bu-wave{height:44px;margin-top:12px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+        .bu-controls{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+        .bu-play{width:38px;height:38px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;font-size:14px}
+        .bu-play:hover{background:var(--gold2)}
+        .bu-scrub{flex:1;display:flex;align-items:center;gap:10px}
+        .bu-scrub input{flex:1;accent-color:var(--gold)}
+        .bu-bar-readout{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);min-width:80px;text-align:right}
+        .bu-event{background:rgba(29,185,84,.06);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);letter-spacing:.02em;line-height:1.5}
+        .bu-release{background:rgba(29,185,84,.12);border-left:3px solid var(--gold);color:var(--gold)}
+        .bu-roll-indicator{display:inline-block;padding:2px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;margin-left:8px;background:rgba(255,100,100,.15);color:#ff6464;border:1px solid rgba(255,100,100,.3)}
+      `}</style>
+
+      <div className="bu-controls">
+        <button className="bu-play" onClick={()=>{ if(bar>=TOTAL) setBar(0); setPlaying(p=>!p); }}>{playing?'❚❚':'▶'}</button>
+        <div className="bu-scrub">
+          <input type="range" min="0" max={TOTAL} step="0.1" value={bar} onChange={e=>{setBar(parseFloat(e.target.value));setPlaying(false);}}/>
+        </div>
+        <div className="bu-bar-readout">Bar {Math.min(TOTAL, Math.floor(bar)+1)}/{TOTAL}</div>
+      </div>
+
+      <div className="bu-decks">
+        <div className="bu-deck">
+          <div className="bu-deck-head" style={{color:'#5b9bd5'}}>TRACK A &#183; CFX Filter</div>
+          <div className="bu-controls-row">
+            {buKnob(hpf, '#5b9bd5', 'HPF DEPTH', Math.round(hpf*100)+'%')}
+            {buKnob(Math.max(0,1-hpf), '#5b9bd5', 'LOW FREQ', undefined)}
+            {buKnob(Math.max(0.3,1-hpf*0.7), '#5b9bd5', 'MID FREQ', undefined)}
+          </div>
+          <div className="bu-wave"><WaveBars active={Math.max(0.05, 1-hpf*0.9)} color="#5b9bd5"/></div>
+        </div>
+
+        <div className="bu-deck">
+          <div className="bu-deck-head" style={{color:'#9b6de0'}}>
+            TRACK B &#183; Echo + Roll
+            {roll > 0.1 && <span className="bu-roll-indicator">ROLL</span>}
+          </div>
+          <div className="bu-controls-row">
+            {buKnob(echoL, '#9b6de0', 'ECHO LVL', Math.round(echoL*100)+'%')}
+            {buKnob(bar < 12 ? 0.5 : 0.75, '#9b6de0', 'BEAT', echoBeat)}
+            {buKnob(roll, '#9b6de0', 'ROLL', roll > 0.1 ? 'ON' : 'OFF')}
+          </div>
+          <div className="bu-wave"><WaveBars active={0.7 + echoL*0.3} color="#9b6de0"/></div>
+        </div>
+      </div>
+
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <div className={`bu-event${released?' bu-release':''}`} style={{marginTop:14}} dangerouslySetInnerHTML={{__html:event}}/>
+    </div>
+  );
+}
