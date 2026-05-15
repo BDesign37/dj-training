@@ -67,13 +67,14 @@ values in components.
   rgba(255,255,255,0.04) per level)
 
 ### Typography
-Both fonts are imported in `index.html` via Google Fonts:
-`family=Inter:wght@400;500;600&family=Outfit:wght@700;800`
+Fonts are loaded in `index.html` via two CDNs:
+- **Google Fonts**: `family=Outfit:wght@700;800`
+- **Fontshare**: `https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap`
 
 | Role                  | Font    | Weight         | CSS Variable    |
 |-----------------------|---------|----------------|-----------------|
 | Headings & wordmark   | Outfit  | Bold (700) or ExtraBold (800) | `var(--font-heading)` |
-| Body copy & UI text   | Inter   | Regular (400) or Medium (500) | `var(--font-sans)` |
+| Body copy & UI text   | Satoshi | Regular (400) or Medium (500) | `var(--font-sans)` |
 | Code/mono/labels      | System monospace stack | — | `var(--font-mono)` |
 
 **Never use serif fonts. Never use system fonts for branded elements.**

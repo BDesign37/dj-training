@@ -39,7 +39,7 @@
 
   /* Font families */
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans:    'Inter',  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:    'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 
   /* Type scale (Radix Themes steps 1–9) */
@@ -48,7 +48,7 @@
   --fs-3xl: 48px; --fs-hero: clamp(32px, 5vw, 52px);
 
   /* Motion */
-  --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+  --ease:        cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --dur-fast: 120ms; --dur: 200ms; --dur-slow: 350ms;
 
@@ -185,7 +185,7 @@ body {
 .sb-btn.active .num { color: var(--gold); }
 .sb-btn .label { flex: 1; }
 .sb-btn .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease); flex-shrink: 0; }
-.sb-btn .dot.done { background: var(--success); box-shadow: 0 0 8px rgba(0,229,255,.5); }
+.sb-btn .dot.done { background: var(--success); box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 1px 0 rgba(255,255,255,.2); }
 
 .sb-footer {
   padding: var(--sp-4) var(--sp-5) var(--sp-5);
@@ -447,10 +447,10 @@ blockquote {
   width: 1px;
   background: linear-gradient(180deg, rgba(99,102,241,.22), transparent);
 }
-.tl-dot        { width: 11px; height: 11px; border-radius: 50%; background: var(--gold);    margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 10px rgba(99,102,241,.35); z-index: 1; }
-.tl-dot.blue   { background: var(--accent2); box-shadow: 0 0 10px rgba(91,155,213,.4); }
-.tl-dot.purple { background: var(--accent1); box-shadow: 0 0 10px rgba(155,109,224,.4); }
-.tl-dot.green  { background: var(--success); box-shadow: 0 0 10px rgba(0,229,255,.4); }
+.tl-dot        { width: 11px; height: 11px; border-radius: 50%; background: var(--gold);    margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(99,102,241,.18), inset 0 1px 0 rgba(255,255,255,.15); z-index: 1; }
+.tl-dot.blue   { background: var(--accent2); box-shadow: 0 0 0 2px rgba(91,155,213,.18),  inset 0 1px 0 rgba(255,255,255,.15); }
+.tl-dot.purple { background: var(--accent1); box-shadow: 0 0 0 2px rgba(155,109,224,.18), inset 0 1px 0 rgba(255,255,255,.15); }
+.tl-dot.green  { background: var(--success); box-shadow: 0 0 0 2px rgba(0,229,255,.18),   inset 0 1px 0 rgba(255,255,255,.15); }
 .tl-content { flex: 1; }
 .tl-label { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--gold); margin-bottom: var(--sp-1); letter-spacing: .08em; }
 .tl-text  { font-size: var(--fs-base); color: var(--text-dim); line-height: 1.6; }
@@ -516,8 +516,8 @@ blockquote {
 
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  #sidebar { position: fixed; z-index: 100; left: -100%; transition: left var(--dur-slow) var(--ease); width: 260px; }
-  #sidebar.open { left: 0; }
+  #sidebar { position: fixed; z-index: 100; transform: translateX(-100%); transition: transform var(--dur-slow) var(--ease); width: 260px; }
+  #sidebar.open { transform: translateX(0); }
   .page { padding: var(--sp-6) var(--sp-5) var(--sp-8); }
   .ch-title { font-size: var(--fs-xl); }
   .ch-header { flex-direction: column; align-items: flex-start; }
