@@ -4,16 +4,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#121113',
-        surface: '#191819',
-        sidebar: '#0f0e10',
-        card: '#191819',
-        card2: '#1f1e20',
-        card3: '#252326',
-        gold: { DEFAULT: '#FFCF56', light: '#FFE08A' },
+        bg: '#121212',
+        surface: '#181818',
+        sidebar: '#000000',
+        card: '#181818',
+        card2: '#282828',
+        card3: '#333333',
+        green: { DEFAULT: '#1db954', light: '#1ed760' },
         accent: { purple: '#9b6de0', blue: '#5b9bd5', pink: '#d45b8a' },
-        teal: '#5bcfb0',
-        border: { DEFAULT: '#242226', strong: '#2e2b32' },
+        border: { DEFAULT: '#282828', strong: '#3e3e3e' },
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', "'Segoe UI'", 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],

@@ -26,9 +26,9 @@ function StatCard({ label, value, sub }) {
 function Home({ onNavigate, completion }) {
   const phases = [
     { name: 'Foundation', color: '#5b9bd5', tag: 'Weeks 1–2',   desc: 'Identity, gear, genre — the prerequisites before you touch a fader' },
-    { name: 'Theory',     color: '#FFCF56', tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
+    { name: 'Theory',     color: '#1db954', tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
     { name: 'Craft',      color: '#9b6de0', tag: 'Months 2–4',  desc: 'The actual mixing — bass swaps, breakdowns, FX, energy architecture' },
-    { name: 'Practice',   color: '#5bcfb0', tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
+    { name: 'Practice',   color: '#1ed760', tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
   ];
   const byPhase = phases.map(p => ({ ...p, chapters: CHAPTERS.filter(c => c.phase === p.name) }));
   const done = CHAPTERS.filter(c => completion[c.id]).length;
@@ -36,7 +36,7 @@ function Home({ onNavigate, completion }) {
   return (
     <div className="home">
       <style>{`
-        .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(36,34,38,.8);position:relative;overflow:hidden}
+        .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(40,40,40,.8);position:relative;overflow:hidden}
         .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
         .hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.7}
         .hero-title{font-family:var(--font-sans);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:780px;text-wrap:balance}
@@ -47,8 +47,8 @@ function Home({ onNavigate, completion }) {
 
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
-        .stat{background:rgba(25,24,25,.9);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
-        .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(255,207,86,.2));border-radius:1px}
+        .stat{background:rgba(24,24,24,1);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+        .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(29,185,84,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
         .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
@@ -60,7 +60,7 @@ function Home({ onNavigate, completion }) {
         .phase-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .phase-desc{font-size:13px;color:var(--muted);margin-left:auto;font-style:italic}
         @media(max-width:900px){.phase-desc{display:none}}
-        .phase-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(36,34,38,.9),transparent)}
+        .phase-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(40,40,40,.9),transparent)}
 
         .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:12px}
         .ch-card{padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
@@ -82,13 +82,13 @@ function Home({ onNavigate, completion }) {
       <div className="hero">
         <BackgroundBeams />
         <svg className="hero-glyph" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="56" fill="none" stroke="#FFCF56" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="42" fill="none" stroke="#FFCF56" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="28" fill="none" stroke="#FFCF56" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="6" fill="#FFCF56" opacity="0.8"/>
+          <circle cx="60" cy="60" r="56" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="42" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="28" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="6" fill="#1db954" opacity="0.8"/>
           {Array.from({ length: 12 }).map((_, i) => {
             const a = i * 30 * Math.PI / 180;
-            return <line key={i} x1={60 + 30 * Math.cos(a)} y1={60 + 30 * Math.sin(a)} x2={60 + 54 * Math.cos(a)} y2={60 + 54 * Math.sin(a)} stroke="#FFCF56" strokeWidth="0.5" opacity="0.4" />;
+            return <line key={i} x1={60 + 30 * Math.cos(a)} y1={60 + 30 * Math.sin(a)} x2={60 + 54 * Math.cos(a)} y2={60 + 54 * Math.sin(a)} stroke="#1db954" strokeWidth="0.5" opacity="0.4" />;
           })}
         </svg>
         <div className="hero-eyebrow">YOUR PATH · PROGRESSIVE PSYTRANCE</div>
@@ -122,7 +122,7 @@ function Home({ onNavigate, completion }) {
                 <SpotlightCard key={ch.id}>
                   <button className={'ch-card ' + (isDone ? 'done' : '')} onClick={() => onNavigate(ch.id)}>
                     <div className="ch-card-status">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#121113" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#121212" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
@@ -160,9 +160,9 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
   return (
     <div className="page">
       <style>{`
-        .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(36,34,38,.8);gap:14px}
-        .ch-foot-btn{flex:1;background:rgba(25,24,25,.9);border:1px solid rgba(36,34,38,.9);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
-        .ch-foot-btn:hover{border-color:rgba(255,207,86,.25);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+        .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(40,40,40,.8);gap:14px}
+        .ch-foot-btn{flex:1;background:rgba(24,24,24,1);border:1px solid rgba(40,40,40,.9);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
+        .ch-foot-btn:hover{border-color:rgba(29,185,84,.25);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
         .ch-foot-btn.right{text-align:right}
         .ch-foot-btn.disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
         .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
