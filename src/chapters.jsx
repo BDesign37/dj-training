@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { BPMZones, FLX4Controller, BassSwapVisualizer, CamelotWheel, PhraseCounter, TrackAnatomy, EnergyArc, ReadinessCheck, PracticeTracker, MilestonesTracker, LongBlendVisualizer, BreakdownMixVisualizer, FilterBlendVisualizer, LoopExtensionVisualizer, CutTransitionVisualizer, BuildUpChainVisualizer } from './visualizers';
+import { useProfile } from './ProfileContext';
 
 const Section = ({title, children}) => (
   <>
@@ -30,14 +31,16 @@ const Drill = ({title='Drill', children}) => (
 // Ch 1 — Sound Identity
 // =============================================================
 function Ch_Identity(){
+  const profile = useProfile();
+  const tlDotClasses = ['', 'blue', 'purple', 'green'];
   return <>
     <p>Everything you've explored so far has narrowed toward a precise answer about who you are as a DJ. Before you practise a single mix, this chapter crystallises it — because a DJ with a clear identity builds better sets, buys music more efficiently, and develops faster.</p>
 
-    <h2>The Genre — Progressive Psytrance, Israeli School</h2>
-    <p>You are not a dark psy-techno DJ. Not a forest DJ. Not a hard trance DJ. You are a <strong>progressive psytrance DJ in the Israeli school</strong> — a very specific, beautiful, coherent world.</p>
+    <h2>The Genre — {profile.name}</h2>
+    <p>{profile.genreDescription}</p>
 
     <Card variant="accent" title="Your Sonic DNA">
-      <p style={{margin:0}}>Melodic, hypnotic, euphoric. <strong>Flowing basslines</strong>, not distorted stabs. A sound rooted in Goa trance (Astral Projection, 1996) and evolved by the Israeli scene (Captain Hook, Astrix, Liquid Soul) into a distinct art form. The dancefloor is on a <em>collective journey</em>, not just dancing to beats.</p>
+      <p style={{margin:0}}>{profile.sonicDNA}</p>
     </Card>
 
     <h2>Your Philosophy — The Float-to-Explosive Arc</h2>
@@ -45,38 +48,33 @@ function Ch_Identity(){
     <p>That contrast isn't accidental. It's the <em>entire grammar</em> of progressive psytrance done right. The floating section is not a rest — it's a <strong>deliberate investment</strong>. The brain perceives intensity relative to what came before. A peak-10 after a peak-10 feels like an 8. A peak-10 after a floating 6 feels like a 12.</p>
 
     <h2>Your BPM Territory</h2>
-    <BPMZones/>
+    <BPMZones zones={profile.bpmZones} defaultBpm={profile.bpmHome} rangeMin={profile.bpmRange.min} rangeMax={profile.bpmRange.max}/>
 
-    <h2>Your North-Star Set — Captain Hook @ Ozora 2025</h2>
-    <p>Study this set like a film student studies Kubrick.</p>
+    <h2>Your North-Star Set — {profile.northStarSet.title}</h2>
+    <p>{profile.northStarSet.study}</p>
     <div className="timeline">
-      <div className="tl-item"><div className="tl-dot"></div><div className="tl-content"><div className="tl-label">00:03 – 00:36</div><div className="tl-text">Slow, melodic opening. Setting the hypnotic state. 33 minutes before a major energy shift.</div></div></div>
-      <div className="tl-item"><div className="tl-dot blue"></div><div className="tl-content"><div className="tl-label">00:36 – 01:03</div><div className="tl-text">Lost Diamond + Frankie's Wish + Arcadia — energy climbs deliberately. Each track slightly more loaded than the last.</div></div></div>
-      <div className="tl-item"><div className="tl-dot purple"></div><div className="tl-content"><div className="tl-label">01:09 – 01:33</div><div className="tl-text"><strong>Gravity Waves (Infected Mushroom Remix)</strong> — held for 24 unbroken minutes. The crowd surrenders completely. This is the "float" phase at maximum depth.</div></div></div>
-      <div className="tl-item"><div className="tl-dot green"></div><div className="tl-content"><div className="tl-label">01:33 – end</div><div className="tl-text">Tocando el Cielo — the emotional release. The contrast with Gravity Waves makes it hit like a freight train.</div></div></div>
+      {profile.northStarSet.timeline.map((item, i) => (
+        <div key={i} className="tl-item">
+          <div className={`tl-dot${tlDotClasses[i] ? ' '+tlDotClasses[i] : ''}`}></div>
+          <div className="tl-content">
+            <div className="tl-label">{item.time}</div>
+            <div className="tl-text">{item.description}</div>
+          </div>
+        </div>
+      ))}
     </div>
 
     <h2>Your Core Artists</h2>
     <div className="artist-grid">
-      {[
-        ['Captain Hook','Your #1 reference'],
-        ['Liquid Soul','Iboga / melodic peak'],
-        ['Astrix','HOMmega / full-on'],
-        ['Egorythmia','Iboga / hypnotic'],
-        ['Klipsun','Deep progressive'],
-        ['Tijah','Tribal, energetic'],
-        ['Synthatic','Driving psy'],
-        ['Dekel','Melodic / Iboga'],
-        ['Talpa','Iboga / signature'],
-        ['Perception','Dark progressive'],
-        ['Astral Projection','Goa roots (study)'],
-        ['Groundbass','Sound of Madness'],
-      ].map(([n,s])=>(
-        <div className="artist-card" key={n}><div className="artist-name">{n}</div><div className="artist-sub">{s}</div></div>
+      {profile.coreArtists.map(a => (
+        <div className="artist-card" key={a.name}>
+          <div className="artist-name">{a.name}</div>
+          <div className="artist-sub">{a.sub}</div>
+        </div>
       ))}
     </div>
 
-    <blockquote>"You don't drop in prog psy. You arrive."</blockquote>
+    <blockquote>{profile.philosophyQuote}</blockquote>
   </>;
 }
 
@@ -84,6 +82,13 @@ function Ch_Identity(){
 // Ch 2 — Gear & Setup
 // =============================================================
 function Ch_Gear(){
+  const profile = useProfile();
+  const folderLines = [
+    `📂 ${profile.folderRoot}/`,
+    ...profile.folderStructure.map((f, i, arr) =>
+      `${i === arr.length - 1 ? '└' : '├'}── ${f.name}${' '.repeat(Math.max(1, 22 - f.name.length))}(${f.note})`
+    ),
+  ].join('\n');
   return <>
     <p>The DDJ-FLX4 gives you real pitch faders, full-size jog wheels, a proper EQ section, and Beat FX — everything needed to execute long progressive blends. Hover the controller below to learn what every part does.</p>
 
@@ -125,21 +130,14 @@ Pad 8 ── Free (best riff or most memorable moment)`}</pre>
     <h2>Rekordbox Setup</h2>
     <h3>Analysis Settings — Critical</h3>
     <ul className="checklist">
-      <li><span className="check-icon">◆</span><span><strong>BPM Range: set to 130–155.</strong> Default is 70–140, which will halve a 144 BPM track to 72.</span></li>
-      <li><span className="check-icon">◆</span><span><strong>Dynamic Analysis: ON.</strong> Prog psy can have subtle tempo variation.</span></li>
+      <li><span className="check-icon">◆</span><span><strong>BPM Range: {profile.rekordboxBpmRange}.</strong> Default is 70–140, which will halve high-BPM tracks.</span></li>
+      <li><span className="check-icon">◆</span><span><strong>Dynamic Analysis: ON.</strong> Your genre can have subtle tempo variation.</span></li>
       <li><span className="check-icon">◆</span><span><strong>Key Detection: ON.</strong> Display in Classical + Camelot dual notation.</span></li>
       <li><span className="check-icon">◆</span><span><strong>Waveform: 3-band colour.</strong> Red = bass, Green = mids, Blue = highs.</span></li>
     </ul>
 
     <h3>Library Organisation</h3>
-    <pre>{`📂 PSYTRANCE BIBLE/
-├── 01_FLOATING         (138–141 BPM, hypnotic, low energy)
-├── 02_PROGRESSIVE      (141–144 BPM, core set material)
-├── 03_FULL_ON_PEAK     (144–148 BPM, explosive moments)
-├── 04_TOOLS            (intros, outros, tribal loops)
-├── 05_GOA_CLASSICS     (study: Astral, early Infected)
-├── 06_INCOMING         (new, unauditioned)
-└── 07_GIG_SETS/        (one playlist per session)`}</pre>
+    <pre>{folderLines}</pre>
 
     <Card variant="blue" title="The one thing you need to buy today">
       <p style={{margin:0}}>The FLX4 has a <strong>6.35mm (¼") headphone jack</strong>. Your Momentum 4 cable ends in 3.5mm. Get a <strong>3.5mm female → 6.35mm male adapter</strong>. €2–5. Before the FLX4 arrives.</p>
@@ -151,23 +149,31 @@ Pad 8 ── Free (best riff or most memorable moment)`}</pre>
 // Ch 3 — Genre DNA
 // =============================================================
 function Ch_Genre(){
+  const profile = useProfile();
+  const tlDotClasses = ['', 'blue', 'purple', 'green'];
+  const { left, right } = profile.twoSounds;
   return <>
-    <h2>The Lineage — From Goa to Ozora</h2>
+    <h2>The Lineage</h2>
     <div className="timeline">
-      <div className="tl-item"><div className="tl-dot"></div><div className="tl-content"><div className="tl-label">1989–1994 · Goa Trance</div><div className="tl-text">Born on the beaches of Goa, India. Exotic scales, psychedelic synths, 145+ BPM. Astral Projection's Mahadeva (1997) is your genre's direct ancestor.</div></div></div>
-      <div className="tl-item"><div className="tl-dot blue"></div><div className="tl-content"><div className="tl-label">1995–2005 · Israeli Scene Emerges</div><div className="tl-text">Israeli producers (Infected Mushroom, Astrix, GMS) took Goa and refined it: longer builds, deeper hypnosis, sophisticated production. The "Israeli school" became the dominant global sound.</div></div></div>
-      <div className="tl-item"><div className="tl-dot purple"></div><div className="tl-content"><div className="tl-label">2005–2015 · The Iboga Era</div><div className="tl-text">Iboga Records defined the melodic progressive sound: Captain Hook, Liquid Soul, Egorythmia, Talpa. Emotional, flowing, euphoric. The golden age of your genre.</div></div></div>
-      <div className="tl-item"><div className="tl-dot green"></div><div className="tl-content"><div className="tl-label">2015–Present · Global Psytrance</div><div className="tl-text">Festivals like Ozora (Hungary), Boom (Portugal), Universo Paralello (Brazil) become temples. BPMs stabilise 138–146.</div></div></div>
+      {profile.lineage.map((era, i) => (
+        <div key={i} className="tl-item">
+          <div className={`tl-dot${tlDotClasses[i] ? ' '+tlDotClasses[i] : ''}`}></div>
+          <div className="tl-content">
+            <div className="tl-label">{era.period} · {era.label}</div>
+            <div className="tl-text">{era.description}</div>
+          </div>
+        </div>
+      ))}
     </div>
 
     <h2>The Two Sounds in Your Collection</h2>
     <table className="data-table">
-      <thead><tr><th>The Iboga Sound</th><th>The HOMmega Sound</th></tr></thead>
+      <thead><tr><th>{left.label}</th><th>{right.label}</th></tr></thead>
       <tbody>
-        <tr><td className="hl">Captain Hook, Liquid Soul, Egorythmia, Talpa</td><td className="hl">Astrix, Ace Ventura, GMS</td></tr>
-        <tr><td>Warm, melodic, emotional journey</td><td>Harder hitting, bigger drops, festival energy</td></tr>
-        <tr><td>138–143 BPM typical</td><td>142–148 BPM typical</td></tr>
-        <tr><td>The "floating" currency</td><td>The "explosive" currency</td></tr>
+        <tr><td className="hl">{left.artists}</td><td className="hl">{right.artists}</td></tr>
+        <tr><td>{left.vibe}</td><td>{right.vibe}</td></tr>
+        <tr><td>{left.bpm}</td><td>{right.bpm}</td></tr>
+        <tr><td>{left.currency}</td><td>{right.currency}</td></tr>
       </tbody>
     </table>
 
@@ -175,12 +181,9 @@ function Ch_Genre(){
     <table className="data-table">
       <thead><tr><th>Label</th><th>Sound</th><th>Key Artists</th></tr></thead>
       <tbody>
-        <tr><td className="hl">Iboga Records</td><td>Melodic, emotional progressive</td><td>Captain Hook, Liquid Soul, Egorythmia</td></tr>
-        <tr><td className="hl">HOMmega</td><td>Full-on, driving Israeli psy</td><td>Astrix, Ace Ventura, GMS</td></tr>
-        <tr><td className="hl">Digital Structures</td><td>Dark progressive, deep</td><td>Talpa, Klipsun, Blueprint</td></tr>
-        <tr><td className="hl">Iono Music</td><td>Progressive psy, melodic</td><td>Egorythmia, ParanormiX</td></tr>
-        <tr><td className="hl">Spin Twist</td><td>Progressive, darker edge</td><td>Sensient, Perplex</td></tr>
-        <tr><td className="hl">Nano Records</td><td>UK psy, festival sound</td><td>Tristan, Laughing Buddha</td></tr>
+        {profile.keyLabels.map(l => (
+          <tr key={l.name}><td className="hl">{l.name}</td><td>{l.sound}</td><td>{l.keyArtists}</td></tr>
+        ))}
       </tbody>
     </table>
 
@@ -291,16 +294,27 @@ function Ch_Beatmatch(){
 // Ch 6 — Phrasing
 // =============================================================
 function Ch_Phrasing(){
+  const profile = useProfile();
+  const bpm = profile.metronomeDefaultBpm;
+  function phraseTime(bars) {
+    const secs = (bars * 4 * 60) / bpm;
+    if (secs >= 60) {
+      const m = Math.floor(secs / 60);
+      const s = Math.round(secs % 60);
+      return `${m} min ${String(s).padStart(2,'0')} sec`;
+    }
+    return `${Math.round(secs)} seconds`;
+  }
   return <>
     <p>Prog psy lives and dies by phrase alignment. A 4-bar mis-alignment is instantly audible to anyone on a dancefloor, even those who couldn't explain why it feels wrong.</p>
 
     <h2>Phrase Structures</h2>
-    <pre>{`At 143 BPM:
-  8 bars  =  13 seconds
- 16 bars  =  26 seconds
- 32 bars  =  53 seconds
- 64 bars  = 1 min 47 sec   ← typical prog psy intro
- 96 bars  = 2 min 40 sec   ← long Iboga intros`}</pre>
+    <pre>{`At ${bpm} BPM:
+  8 bars  =  ${phraseTime(8)}
+ 16 bars  =  ${phraseTime(16)}
+ 32 bars  =  ${phraseTime(32)}
+ 64 bars  =  ${phraseTime(64)}   ← typical intro
+ 96 bars  =  ${phraseTime(96)}   ← long intros`}</pre>
 
     <h2>Anatomy of a Progressive Psytrance Track</h2>
     <p>Click any section in the strip below. The breakdown and outro are your transition windows.</p>
@@ -313,7 +327,7 @@ function Ch_Phrasing(){
 
     <h2>Train Phrase Counting</h2>
     <p>This metronome marks the start of every phrase with a louder click. Practise counting along — out loud — until the phrase boundary feels inevitable.</p>
-    <PhraseCounter/>
+    <PhraseCounter defaultBpm={bpm}/>
 
     <h2>Common Phrasing Mistakes</h2>
     <ul className="checklist">
@@ -323,8 +337,8 @@ function Ch_Phrasing(){
       <li><span className="check-icon">✗</span><span><strong>Mixing out mid-phrase.</strong> Wait the extra 20 bars. Don't truncate the listener's expectation.</span></li>
     </ul>
 
-    <Card variant="purple" title="The Ozora Move (Captain Hook Pattern)">
-      <p style={{margin:0}}>In the Ozora 2025 set, Gravity Waves runs unbroken for 24 minutes. He wasn't sitting on his hands — he was waiting for exactly the right breakdown moment to transition to Tocando el Cielo. The patience to wait for the perfect phrase is what separates a good DJ from a great one.</p>
+    <Card variant="purple" title={profile.phrasingCaseStudy.title}>
+      <p style={{margin:0}}>{profile.phrasingCaseStudy.body}</p>
     </Card>
   </>;
 }
@@ -471,47 +485,43 @@ function Ch_Energy(){
 // Ch 10 — Library
 // =============================================================
 function Ch_Library(){
+  const profile = useProfile();
   return <>
     <h2>The 60–80 Track Pool Philosophy</h2>
     <p>You don't need 500 tracks. You need 60–80 tracks you know inside out: you can hum the riff, you know every breakdown timing, you know what 3–5 other tracks mix best into and out of it, and you've practised at least 5 different transitions with it.</p>
 
     <h2>Library Composition</h2>
-    <div className="energy-bar"><div className="e-label">Floating</div><div className="e-track"><div className="e-fill" style={{width:'25%',background:'#5b9bd5'}}/></div><span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~25% · Klipsun, early Egorythmia</span></div>
-    <div className="energy-bar"><div className="e-label">Progressive</div><div className="e-track"><div className="e-fill" style={{width:'50%',background:'#c9a84c'}}/></div><span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~50% · Captain Hook, Liquid Soul, Talpa</span></div>
-    <div className="energy-bar"><div className="e-label">Full-On Peak</div><div className="e-track"><div className="e-fill" style={{width:'15%',background:'#9b6de0'}}/></div><span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~15% · Astrix, GMS, Vini Vici</span></div>
-    <div className="energy-bar"><div className="e-label">Tools</div><div className="e-track"><div className="e-fill" style={{width:'10%',background:'#5bcfb0'}}/></div><span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~10% · intros, outros, tribal loops</span></div>
+    {profile.libraryComposition.map(cat => (
+      <div key={cat.category} className="energy-bar">
+        <div className="e-label">{cat.category}</div>
+        <div className="e-track"><div className="e-fill" style={{width:cat.percentage+'%',background:cat.color}}/></div>
+        <span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~{cat.percentage}% · {cat.artists}</span>
+      </div>
+    ))}
 
-    <h2>Where to Find Prog Psy</h2>
+    <h2>Where to Find Your Music</h2>
     <table className="data-table">
       <thead><tr><th>Source</th><th>Best For</th><th>Note</th></tr></thead>
       <tbody>
-        <tr><td className="hl">Beatport</td><td>Confirmed key/BPM, large catalogue</td><td>Filter "Psytrance" — Iboga, HOMmega all there</td></tr>
-        <tr><td className="hl">Bandcamp</td><td>Lossless FLAC, direct artist support</td><td>Search "progressive psytrance" for gems</td></tr>
-        <tr><td className="hl">Iboga Records shop</td><td>Complete label catalogue</td><td>Your primary buying source</td></tr>
-        <tr><td className="hl">SoundCloud</td><td>DJ mix discovery</td><td>Follow Captain Hook, Liquid Soul, Astrix</td></tr>
-        <tr><td className="hl">Ektoplazm</td><td>Free / pay-what-you-want psy</td><td>Deep underground releases</td></tr>
+        {profile.whereToFind.map(s => (
+          <tr key={s.source}><td className="hl">{s.source}</td><td>{s.bestFor}</td><td>{s.note}</td></tr>
+        ))}
       </tbody>
     </table>
 
     <h2>Adjacent Artists Worth Exploring</h2>
     <div className="artist-grid">
-      {[
-        ['Ace Ventura','Iboga — melodic journey'],
-        ['Vertical Mode','HOMmega bridge'],
-        ['Sonic Species','Slightly harder crossover'],
-        ['Skyfall','Deep progressive'],
-        ['GMS','Classic full-on texture'],
-        ['Vini Vici','Festival peak moments'],
-        ['Infected Mushroom','Classic — Gravity Waves'],
-        ['Parasense','Dark progressive bridge'],
-      ].map(([n,s])=>(
-        <div className="artist-card" key={n}><div className="artist-name">{n}</div><div className="artist-sub">{s}</div></div>
+      {profile.adjacentArtists.map(a => (
+        <div className="artist-card" key={a.name}>
+          <div className="artist-name">{a.name}</div>
+          <div className="artist-sub">{a.sub}</div>
+        </div>
       ))}
     </div>
 
     <h2>Weekly Music Admin</h2>
     <ul className="checklist">
-      <li><span className="check-icon">1</span><span>Check Beatport Psytrance chart + Iboga new releases</span></li>
+      <li><span className="check-icon">1</span><span>Check Beatport chart + label new releases</span></li>
       <li><span className="check-icon">2</span><span>Listen to one DJ mix, Shazam unknown tracks</span></li>
       <li><span className="check-icon">3</span><span>Buy 2–4 candidates. Analyse in Rekordbox. Set hot cues.</span></li>
       <li><span className="check-icon">4</span><span>Test-mix each candidate with 3 known tracks before library admission</span></li>

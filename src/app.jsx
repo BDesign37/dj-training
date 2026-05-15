@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { CHAPTERS } from './chapters';
 import { useLocal } from './visualizers';
+import { PROFILES } from './profiles';
+import { ProfileContext, useProfile } from './ProfileContext';
+import { OnboardingModal } from './onboarding';
 import { BackgroundBeams } from '@/components/aceternity/background-beams';
 import { SpotlightCard }   from '@/components/aceternity/card-hover-effect';
 import { ShimmerBorder }   from '@/components/aceternity/shimmer-border';
@@ -24,6 +27,7 @@ function StatCard({ label, value, sub }) {
 
 // ── Home / Learning Path overview ─────────────────────────────
 function Home({ onNavigate, completion }) {
+  const profile = useProfile();
   const phases = [
     { name: 'Foundation', color: '#5b9bd5', tag: 'Weeks 1–2',   desc: 'Identity, gear, genre — the prerequisites before you touch a fader' },
     { name: 'Theory',     color: '#1db954', tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
@@ -100,7 +104,7 @@ function Home({ onNavigate, completion }) {
       <div className="stats">
         <StatCard label="Chapters complete" value={done} sub="/ 12" />
         <StatCard label="Path phase" value={done < 3 ? 'Foundation' : done < 6 ? 'Theory' : done < 9 ? 'Craft' : 'Practice'} />
-        <StatCard label="BPM home" value="143" sub="BPM" />
+        <StatCard label="BPM home" value={profile.bpmHome} sub="BPM" />
         <StatCard label="Home key" value="8A" sub="Am" />
       </div>
 
@@ -201,6 +205,19 @@ function App() {
   const [route, setRoute] = useState(() => location.hash.replace('#', '') || 'home');
   const [completion, setCompletion] = useLocal('chapter-completion', {});
   const [sbOpen, setSbOpen] = useState(false);
+  const [savedProfile, setSavedProfile] = useLocal('djpath_profile', null);
+  const [showOnboarding, setShowOnboarding] = useState(!savedProfile);
+  const profile = savedProfile ? (PROFILES[savedProfile.archetype] || PROFILES['israeli-progressive']) : PROFILES['israeli-progressive'];
+
+  function handleOnboardingComplete(profileData) {
+    setSavedProfile(profileData);
+    setShowOnboarding(false);
+  }
+
+  function handleResetProfile() {
+    setSavedProfile(null);
+    setShowOnboarding(true);
+  }
 
   useEffect(() => {
     const fn = () => setRoute(location.hash.replace('#', '') || 'home');
@@ -219,7 +236,9 @@ function App() {
   const pct  = Math.round(done / CHAPTERS.length * 100);
 
   return (
+    <ProfileContext.Provider value={profile}>
     <TooltipProvider>
+      {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
       <button className="mobile-toggle" onClick={() => setSbOpen(o => !o)}>☰</button>
 
       <nav id="sidebar" className={sbOpen ? 'open' : ''}>
@@ -230,7 +249,7 @@ function App() {
               <div className="sb-mark-title">DJ Path</div>
             </div>
           </div>
-          <div className="sb-sub">Progressive · Israeli school · 138–148 BPM</div>
+          <div className="sb-sub">{profile.tagline}</div>
           <div className="sb-progress-row">
             <span>PROGRESS</span>
             <span className="sb-progress-pct">{done}/12 · {pct}%</span>
@@ -265,7 +284,15 @@ function App() {
           ))}
         </ScrollArea>
 
-        <div className="sb-footer">FLX4 · Rekordbox · Iboga</div>
+        <div className="sb-footer" style={{display:'flex',flexDirection:'column',gap:6}}>
+          <span>FLX4 · Rekordbox</span>
+          <button
+            style={{background:'none',border:'none',color:'var(--muted)',fontFamily:'var(--font-mono)',fontSize:'10px',letterSpacing:'.06em',cursor:'pointer',textAlign:'left',padding:0,textDecoration:'underline',textDecorationColor:'rgba(138,138,138,.3)'}}
+            onClick={handleResetProfile}
+          >
+            Reset sound profile
+          </button>
+        </div>
       </nav>
 
       <main id="main">
@@ -286,6 +313,7 @@ function App() {
         )}
       </main>
     </TooltipProvider>
+    </ProfileContext.Provider>
   );
 }
 

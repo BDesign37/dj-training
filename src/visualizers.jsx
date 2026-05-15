@@ -485,8 +485,8 @@ export function CamelotWheel(){
 // =============================================================
 // 4. Phrase Counter (audible metronome)
 // =============================================================
-export function PhraseCounter(){
-  const [bpm, setBpm] = useState(143);
+export function PhraseCounter({ defaultBpm = 143 }){
+  const [bpm, setBpm] = useState(defaultBpm);
   const [playing, setPlaying] = useState(false);
   const [beat, setBeat] = useState(0);
   const [barsPerPhrase, setBars] = useState(32);
@@ -960,14 +960,15 @@ export function PracticeTracker(){
 // =============================================================
 // 9. BPM Zones
 // =============================================================
-export function BPMZones(){
-  const [bpm, setBpm] = useState(143);
-  const zones = [
-    {min:138, max:141, name:'Deep / Floating', role:'Openers, float sections', artists:'Klipsun, early Egorythmia, deep cuts', color:'#5b9bd5'},
-    {min:141, max:144, name:'Core Progressive', role:'Main set body — your home', artists:'Captain Hook, Liquid Soul, Talpa', color:'#c9a84c'},
-    {min:144, max:146, name:'Full-On Progressive', role:'Build to peak', artists:'Astrix, Vertical Mode, Ace Ventura', color:'#9b6de0'},
-    {min:146, max:148, name:'Peak Full-On', role:'Explosive moments', artists:'GMS, Astrix peaks, Vini Vici', color:'#d45b8a'},
+export function BPMZones({ zones: zonesProp, defaultBpm = 143, rangeMin = 138, rangeMax = 148 }){
+  const [bpm, setBpm] = useState(defaultBpm);
+  const DEFAULT_ZONES = [
+    {min:138, max:141, label:'Deep / Floating', role:'Openers, float sections', artists:'Klipsun, early Egorythmia, deep cuts', color:'#5b9bd5'},
+    {min:141, max:144, label:'Core Progressive', role:'Main set body — your home', artists:'Captain Hook, Liquid Soul, Talpa', color:'#c9a84c'},
+    {min:144, max:146, label:'Full-On Progressive', role:'Build to peak', artists:'Astrix, Vertical Mode, Ace Ventura', color:'#9b6de0'},
+    {min:146, max:148, label:'Peak Full-On', role:'Explosive moments', artists:'GMS, Astrix peaks, Vini Vici', color:'#d45b8a'},
   ];
+  const zones = zonesProp || DEFAULT_ZONES;
   const z = zones.find(z=>bpm>=z.min && bpm<z.max) || zones[zones.length-1];
   return (
     <div className="bz-wrap">
@@ -988,7 +989,7 @@ export function BPMZones(){
       <div className="bz-readout">
         <div className="bz-bpm">{bpm}<small>BPM</small></div>
         <div className="bz-current" style={{borderLeftColor:z.color}}>
-          <div className="bz-cur-name" style={{color:z.color}}>{z.name}</div>
+          <div className="bz-cur-name" style={{color:z.color}}>{z.label || z.name}</div>
           <div className="bz-cur-role">{z.role}</div>
           <div className="bz-cur-art">{z.artists}</div>
         </div>
@@ -999,7 +1000,7 @@ export function BPMZones(){
             <div key={i} className="bz-zone" style={{flex:zn.max-zn.min,background:zn.color}}>{zn.min}–{zn.max}</div>
           ))}
         </div>
-        <input type="range" min="138" max="148" step="0.5" value={bpm} onChange={e=>setBpm(parseFloat(e.target.value))}/>
+        <input type="range" min={rangeMin} max={rangeMax} step="0.5" value={Math.min(Math.max(bpm,rangeMin),rangeMax)} onChange={e=>setBpm(parseFloat(e.target.value))}/>
       </div>
     </div>
   );
