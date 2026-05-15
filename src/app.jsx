@@ -96,8 +96,8 @@ function Home({ onNavigate, completion }) {
           })}
         </svg>
         <div className="hero-eyebrow">{profile.name.toUpperCase()} · YOUR PATH</div>
-        <h1 className="hero-title">From <em>floating</em> to <em>explosive</em> — your six-month return to the decks.</h1>
-        <p className="hero-sub">Twelve chapters, four phases. Interactive visual aids for every technique that needs one. Work through it in order, or jump to what you need.</p>
+        <h1 className="hero-title">From <em>floating</em> to <em>locked in</em> — your path, shaped around your sound.</h1>
+        <p className="hero-sub">Technique drills and interactive aids for every concept that needs one. Work the full path or jump to what you need.</p>
       </div>
 
       {/* Stats */}
