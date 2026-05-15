@@ -87,6 +87,7 @@ html, body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'zero' 0;
 }
 
 body {
