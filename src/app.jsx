@@ -37,11 +37,11 @@ function Home({ onNavigate, completion }) {
     <div className="home">
       <style>{`
         .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(36,34,38,.8);position:relative;overflow:hidden}
-        .hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+        .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
         .hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.7}
-        .hero-title{font-family:'Cinzel',serif;font-size:clamp(36px,5vw,54px);font-weight:700;color:var(--text);line-height:1.05;letter-spacing:.005em;margin-bottom:18px;max-width:780px;text-wrap:balance}
-        .hero-title em{color:var(--gold);font-style:italic;font-weight:600}
-        .hero-sub{font-size:18px;color:var(--text-dim);line-height:1.6;max-width:640px;font-style:italic}
+        .hero-title{font-family:var(--font-sans);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:780px;text-wrap:balance}
+        .hero-title em{color:var(--gold);font-style:normal;font-weight:800}
+        .hero-sub{font-size:17px;color:var(--text-dim);line-height:1.6;max-width:640px}
         .hero-glyph{position:absolute;top:-20px;right:0;width:140px;height:140px;opacity:.35;pointer-events:none}
         @media(max-width:900px){.hero-glyph{display:none}}
 
@@ -49,23 +49,23 @@ function Home({ onNavigate, completion }) {
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
         .stat{background:rgba(25,24,25,.9);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
         .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(255,207,86,.2));border-radius:1px}
-        .stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-        .stat-val{font-family:'Cinzel',serif;font-size:30px;color:var(--gold);font-weight:700;line-height:1}
-        .stat-val small{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:6px;font-weight:400}
+        .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+        .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
+        .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
 
         .phase{margin-bottom:44px}
         .phase-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
         .phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-        .phase-name{font-family:'Cinzel',serif;font-size:16px;color:var(--text);letter-spacing:.06em;font-weight:600}
-        .phase-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+        .phase-name{font-family:var(--font-sans);font-size:16px;color:var(--text);letter-spacing:-.01em;font-weight:700}
+        .phase-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .phase-desc{font-size:13px;color:var(--muted);margin-left:auto;font-style:italic}
         @media(max-width:900px){.phase-desc{display:none}}
         .phase-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(36,34,38,.9),transparent)}
 
         .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:12px}
         .ch-card{padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
-        .ch-card-num{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
-        .ch-card-title{font-family:'Cinzel',serif;font-size:16px;color:var(--text);line-height:1.25;letter-spacing:.01em;font-weight:600;margin-top:2px}
+        .ch-card-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+        .ch-card-title{font-family:var(--font-sans);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:600;margin-top:2px}
         .ch-card-sub{font-size:12.5px;color:var(--muted);line-height:1.45;font-style:italic;margin-top:auto;padding-top:8px}
         .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .2s}
         .ch-card.done .ch-card-status{background:var(--green);border-color:var(--green)}
@@ -74,8 +74,8 @@ function Home({ onNavigate, completion }) {
 
         .quote-inner{padding:28px 32px;position:relative}
         .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
-        .quote-text{font-family:'Cinzel',serif;font-size:20px;color:var(--text);line-height:1.45;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px}
-        .quote-attr{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;padding-left:20px}
+        .quote-text{font-family:var(--font-sans);font-size:20px;color:var(--text);line-height:1.5;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
+        .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
       `}</style>
 
       {/* Hero */}
@@ -165,8 +165,8 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
         .ch-foot-btn:hover{border-color:rgba(255,207,86,.25);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
         .ch-foot-btn.right{text-align:right}
         .ch-foot-btn.disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
-        .ch-foot-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
-        .ch-foot-title{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);font-weight:600;letter-spacing:.02em}
+        .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+        .ch-foot-title{font-family:var(--font-sans);font-size:14px;color:var(--gold);font-weight:600;letter-spacing:-.01em}
       `}</style>
 
       <div className="ch-header">

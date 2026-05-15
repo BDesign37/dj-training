@@ -16,9 +16,8 @@ export default {
         border: { DEFAULT: '#242226', strong: '#2e2b32' },
       },
       fontFamily: {
-        cinzel: ['Cinzel', 'serif'],
-        crimson: ['"Crimson Text"', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', "'Segoe UI'", 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['ui-monospace', "'Cascadia Code'", "'Source Code Pro'", 'Menlo', 'Consolas', "'DejaVu Sans Mono'", 'monospace'],
       },
       spacing: {
         18: '4.5rem',
