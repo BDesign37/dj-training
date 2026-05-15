@@ -43,22 +43,22 @@ function Home({ onNavigate, completion }) {
         .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(40,40,40,.8);position:relative;overflow:hidden}
         .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
         .hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.7}
-        .hero-title{font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.05;letter-spacing:-.03em;margin-bottom:18px;max-width:780px;text-wrap:balance}
+        .hero-title{font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.05;letter-spacing:-.03em;margin-bottom:16px;max-width:780px;text-wrap:balance}
         .hero-title em{color:var(--gold);font-style:normal;font-weight:800}
         .hero-sub{font-family:var(--font-sans);font-size:var(--fs-md);color:var(--text-dim);line-height:1.65;max-width:62ch;font-weight:400;letter-spacing:.01em}
         .hero-glyph{position:absolute;top:-20px;right:0;width:140px;height:140px;opacity:.35;pointer-events:none}
         @media(max-width:900px){.hero-glyph{display:none}}
 
-        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
-        .stat{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+        .stat{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;position:relative;overflow:hidden}
         .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),rgba(99,102,241,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-mono);font-size:28px;color:var(--gold);font-weight:700;line-height:1;letter-spacing:-.02em}
         .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
 
-        .phase{margin-bottom:44px}
-        .phase-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+        .phase{margin-bottom:48px}
+        .phase-head{display:flex;align-items:center;gap:16px;margin-bottom:16px}
         .phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
         .phase-name{font-family:var(--font-heading);font-size:16px;color:var(--text);letter-spacing:-.01em;font-weight:700}
         .phase-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
@@ -67,16 +67,16 @@ function Home({ onNavigate, completion }) {
         .phase-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(40,40,40,.9),transparent)}
 
         .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:12px}
-        .ch-card{padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
+        .ch-card{padding:16px 20px;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
         .ch-card-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .ch-card-title{font-family:var(--font-heading);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:700;margin-top:2px}
         .ch-card-sub{font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;margin-top:auto;padding-top:8px}
         .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all var(--dur) var(--ease)}
         .ch-card.done .ch-card-status{background:var(--success);border-color:var(--success)}
-        .ch-card.done .ch-card-status svg{display:block}
-        .ch-card-status svg{width:10px;height:10px;display:none}
+        .ch-card-status svg{width:10px;height:10px;opacity:0;transform:scale(0.8);transition:opacity 200ms ease-out,transform 200ms ease-out}
+        .ch-card.done .ch-card-status svg{opacity:1;transform:scale(1)}
 
-        .quote-inner{padding:28px 32px;position:relative}
+        .quote-inner{padding:24px 32px;position:relative}
         .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
         .quote-text{font-family:var(--font-heading);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
         .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
@@ -165,10 +165,10 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
     <div className="page">
       <style>{`
         .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(40,40,40,.8);gap:14px}
-        .ch-foot-btn{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color 150ms ease,background 150ms ease,transform 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
-        .ch-foot-btn:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.03);transform:translateY(-1px)}
+        .ch-foot-btn{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;text-align:left;cursor:pointer;transition:border-color 200ms ease-out,background 200ms ease-out,transform 200ms ease-out,opacity 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px;min-height:40px}
+        .ch-foot-btn:hover{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.03);transform:translateY(-2px)}
         .ch-foot-btn.right{text-align:right}
-        .ch-foot-btn.disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+        .ch-foot-btn.disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
         .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .ch-foot-title{font-family:var(--font-heading);font-size:14px;color:var(--gold);font-weight:700;letter-spacing:-.01em}
       `}</style>
@@ -239,7 +239,16 @@ function App() {
     <ProfileContext.Provider value={profile}>
     <TooltipProvider>
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
-      <button className="mobile-toggle" onClick={() => setSbOpen(o => !o)}>☰</button>
+      <header className="mobile-header">
+        <img src="/dj-training/assets/logo.svg" alt="Crate." width={110} style={{display:'block',height:'auto'}} />
+        <button className="mobile-hamburger" onClick={() => setSbOpen(o => !o)} aria-label="Open menu">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+            <rect width="16" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect y="5.25" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+            <rect y="10.5" width="16" height="1.5" rx="0.75" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
 
       <nav id="sidebar" className={sbOpen ? 'open' : ''}>
         <div className="sb-header">
