@@ -495,7 +495,7 @@ function Ch_Library(){
       <div key={cat.category} className="energy-bar">
         <div className="e-label">{cat.category}</div>
         <div className="e-track"><div className="e-fill" style={{width:cat.percentage+'%',background:cat.color}}/></div>
-        <span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'JetBrains Mono,monospace'}}>~{cat.percentage}% · {cat.artists}</span>
+        <span style={{fontSize:12,color:'var(--muted)',marginLeft:8,fontFamily:'var(--font-mono)'}}>~{cat.percentage}% · {cat.artists}</span>
       </div>
     ))}
 

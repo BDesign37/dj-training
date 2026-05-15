@@ -151,14 +151,14 @@ body {
 .sb-progress-pct { color: var(--success); font-weight: 600; letter-spacing: .02em; }
 
 .sb-section {
-  padding: var(--sp-4) var(--sp-5) var(--sp-1);
+  padding: var(--sp-4) var(--sp-5) var(--sp-2);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: .12em;
   color: var(--muted2);
   text-transform: uppercase;
 }
-.sb-list { display: flex; flex-direction: column; padding-bottom: var(--sp-2); }
+.sb-list { display: flex; flex-direction: column; padding-bottom: var(--sp-3); }
 
 .sb-btn {
   display: flex;
@@ -166,7 +166,7 @@ body {
   gap: var(--sp-2);
   width: calc(100% - 12px);
   margin: 1px 6px;
-  padding: 7px var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
   background: none;
   border: none;
   border-left: 2px solid transparent;
@@ -189,7 +189,7 @@ body {
 .sb-btn .dot.done { background: var(--success); box-shadow: 0 0 0 2px rgba(0,229,255,.2), inset 0 1px 0 rgba(255,255,255,.2); }
 
 .sb-footer {
-  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   display: flex;

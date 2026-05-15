@@ -238,7 +238,7 @@ export function OnboardingModal({ onComplete }) {
         .ob-textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:13px;padding:12px 14px;resize:vertical;line-height:1.6;outline:none;box-sizing:border-box}
         .ob-textarea:focus{border-color:rgba(99,102,241,.5);box-shadow:0 0 0 2px rgba(99,102,241,.08)}
 
-        .ob-btn-primary{background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:14px 28px;font-family:var(--font-heading);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-.01em;transition:background .15s,transform .1s;align-self:flex-start}
+        .ob-btn-primary{background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:14px 28px;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0;transition:background .15s,transform .1s;align-self:flex-start}
         .ob-btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
         .ob-btn-primary:active{transform:none}
 
