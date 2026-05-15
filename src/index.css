@@ -33,8 +33,9 @@
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
   --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
 
-  /* Font families (Radix UI defaults) */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Font families */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans:    'Inter',  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 
   /* Type scale (Radix Themes steps 1–9) */
@@ -121,7 +122,7 @@ body {
 .sb-mark-glyph::after  { content: ''; position: absolute; width: 19px; height: 19px; border: 1px solid rgba(29,185,84,.28); border-radius: 50%; }
 
 .sb-mark-title {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: var(--fs-sm);
   font-weight: 700;
   letter-spacing: .06em;
@@ -233,7 +234,7 @@ body {
 .ch-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--gold); opacity: .6; display: inline-block; }
 
 .ch-title {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: var(--fs-2xl);
   font-weight: 800;
   color: var(--text);
@@ -263,7 +264,7 @@ body {
 
 /* ── Typography ──────────────────────────────────────────────── */
 h2 {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--gold2);
@@ -280,7 +281,7 @@ h2::before {
   border-radius: 2px;
   flex-shrink: 0;
 }
-h3 { font-family: var(--font-sans); font-size: var(--fs-md); font-weight: 600; color: var(--text); margin: var(--sp-5) 0 var(--sp-3); letter-spacing: -.005em; }
+h3 { font-family: var(--font-heading); font-size: var(--fs-md); font-weight: 700; color: var(--text); margin: var(--sp-5) 0 var(--sp-3); letter-spacing: -.005em; }
 p  { margin-bottom: var(--sp-4); color: var(--text-dim); text-wrap: pretty; line-height: 1.6; }
 strong { color: var(--text); font-weight: 600; }
 em     { color: var(--gold); font-style: italic; }

@@ -87,8 +87,8 @@ function Step1({ onDetect }) {
 
   function handleDetect() {
     const raw = input.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
-    if (raw.length < 1) { setError('Enter at least one artist name.'); return; }
-    if (raw.length > 8) { setError('Enter up to 8 artists.'); return; }
+    if (raw.length < 1) { setError('Enter at least one artist.'); return; }
+    if (raw.length > 8) { setError('Up to 8 artists — pick your favourites.'); return; }
     setError('');
     onDetect(raw);
   }
@@ -96,8 +96,8 @@ function Step1({ onDetect }) {
   return (
     <div className="ob-step">
       <div className="ob-eyebrow">Sound Identity · Step 1 of 3</div>
-      <h2 className="ob-title">Before we begin — who do you sound like?</h2>
-      <p className="ob-subtitle">Enter 3–5 artists or tracks you love and want to sound like as a DJ. We'll shape this path around your sound.</p>
+      <h2 className="ob-title">Who do you want to sound like?</h2>
+      <p className="ob-subtitle">Enter a few artists you love. Crate. will use them to find your archetype and shape the path around your sound.</p>
       <textarea
         className="ob-textarea"
         placeholder={"Captain Hook\nLiquid Soul\nAstrix\nEgorythmia"}
@@ -106,9 +106,9 @@ function Step1({ onDetect }) {
         rows={5}
       />
       {error && <div className="ob-error">{error}</div>}
-      <p className="ob-hint">One per line or comma-separated. 3–5 artists for best results.</p>
+      <p className="ob-hint">One per line or comma-separated. 3–5 artists works best.</p>
       <button className="ob-btn-primary" onClick={handleDetect}>
-        Detect My Sound →
+        Find my archetype →
       </button>
     </div>
   );
@@ -116,29 +116,29 @@ function Step1({ onDetect }) {
 
 // ── Step 2: Detection in progress ────────────────────────────
 function Step2({ artists, onResult }) {
-  const [status, setStatus] = useState('Starting detection…');
+  const [status, setStatus] = useState('Looking up your artists…');
   const [done, setDone] = useState(false);
 
   useState(() => {
     let cancelled = false;
     async function run() {
-      setStatus(`Fetching tags for ${artists.length} artist${artists.length > 1 ? 's' : ''}…`);
+      setStatus(`Checking ${artists.length} artist${artists.length > 1 ? 's' : ''}…`);
       const allTags = [];
       for (let i = 0; i < artists.length; i++) {
         if (cancelled) return;
-        setStatus(`Analysing ${artists[i]} (${i + 1}/${artists.length})…`);
+        setStatus(`${artists[i]} — ${i + 1} of ${artists.length}`);
         const tags = await fetchArtistTags(artists[i]);
         allTags.push(...tags);
       }
       if (cancelled) return;
-      setStatus('Scoring archetypes…');
+      setStatus('Matching your sound…');
       await new Promise(r => setTimeout(r, 600));
       if (cancelled) return;
       const scores = scoreArchetypes(allTags);
       const detected = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
       const confidence = getConfidence(scores, detected);
       setDone(true);
-      setStatus('Detection complete.');
+      setStatus('Done.');
       setTimeout(() => { if (!cancelled) onResult({ detected, confidence, scores, detectedFrom: artists }); }, 400);
     }
     run();
@@ -179,7 +179,7 @@ function Step3({ detected, confidence, detectedFrom, onConfirm }) {
 
       <div className="ob-result-desc">{ARCHETYPE_DESCRIPTIONS[selected]}</div>
 
-      <div className="ob-override-label">Not quite right? Choose your archetype:</div>
+      <div className="ob-override-label">Not your sound? Pick manually:</div>
       <div className="ob-archetype-grid">
         {Object.keys(PROFILES).map(key => (
           <button
@@ -198,7 +198,7 @@ function Step3({ detected, confidence, detectedFrom, onConfirm }) {
         className="ob-btn-primary"
         onClick={() => onConfirm({ archetype: selected, bpmHome: PROFILES[selected].bpmHome, detectedFrom, confirmedAt: Date.now() })}
       >
-        This is me — let's begin ✓
+        This is me — start the path →
       </button>
     </div>
   );
@@ -224,21 +224,21 @@ export function OnboardingModal({ onComplete }) {
     <div className="ob-overlay">
       <style>{`
         .ob-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px}
-        .ob-modal{background:#181818;border:1px solid rgba(255,255,255,.1);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:40px 36px;position:relative}
+        .ob-modal{background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:16px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:40px 36px;position:relative}
         @media(max-width:600px){.ob-modal{padding:28px 20px}}
 
         .ob-step{display:flex;flex-direction:column;gap:20px}
         .ob-step-center{align-items:center;text-align:center;padding:40px 0}
         .ob-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
-        .ob-title{font-family:var(--font-sans);font-size:clamp(22px,4vw,30px);font-weight:800;color:var(--text);line-height:1.2;letter-spacing:-.02em;margin:0}
+        .ob-title{font-family:var(--font-heading);font-size:clamp(22px,4vw,30px);font-weight:800;color:var(--text);line-height:1.2;letter-spacing:-.02em;margin:0}
         .ob-subtitle{font-size:15px;color:var(--text-dim);line-height:1.6;margin:0}
         .ob-hint{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:0}
         .ob-error{font-size:13px;color:#ff6464;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);border-radius:6px;padding:8px 12px}
 
-        .ob-textarea{width:100%;background:#121212;border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:13px;padding:12px 14px;resize:vertical;line-height:1.6;outline:none;box-sizing:border-box}
+        .ob-textarea{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:13px;padding:12px 14px;resize:vertical;line-height:1.6;outline:none;box-sizing:border-box}
         .ob-textarea:focus{border-color:rgba(29,185,84,.5);box-shadow:0 0 0 2px rgba(29,185,84,.08)}
 
-        .ob-btn-primary{background:var(--gold);color:#121212;border:none;border-radius:8px;padding:14px 28px;font-family:var(--font-sans);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-.01em;transition:background .15s,transform .1s;align-self:flex-start}
+        .ob-btn-primary{background:var(--gold);color:var(--bg);border:none;border-radius:8px;padding:14px 28px;font-family:var(--font-heading);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-.01em;transition:background .15s,transform .1s;align-self:flex-start}
         .ob-btn-primary:hover{background:#22d15f;transform:translateY(-1px)}
         .ob-btn-primary:active{transform:none}
 
@@ -248,9 +248,9 @@ export function OnboardingModal({ onComplete }) {
         .ob-detect-artists{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
         .ob-artist-pill{background:rgba(29,185,84,.1);border:1px solid rgba(29,185,84,.25);border-radius:20px;padding:4px 12px;font-family:var(--font-mono);font-size:11px;color:var(--gold)}
 
-        .ob-result-header{background:#121212;border:1px solid var(--border2);border-radius:10px;padding:20px 22px}
+        .ob-result-header{background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:20px 22px}
         .ob-result-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-        .ob-result-name{font-family:var(--font-sans);font-size:24px;font-weight:800;color:var(--gold);letter-spacing:-.02em;line-height:1.2}
+        .ob-result-name{font-family:var(--font-heading);font-size:24px;font-weight:800;color:var(--gold);letter-spacing:-.02em;line-height:1.2}
         .ob-result-tagline{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px}
         .ob-result-desc{font-size:14px;color:var(--text-dim);line-height:1.6;background:rgba(29,185,84,.04);border-left:2px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0}
 
@@ -261,10 +261,10 @@ export function OnboardingModal({ onComplete }) {
 
         .ob-override-label{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
         .ob-archetype-grid{display:flex;flex-direction:column;gap:8px}
-        .ob-archetype-card{background:#121212;border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit;color:inherit}
+        .ob-archetype-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:left;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit;color:inherit}
         .ob-archetype-card:hover{border-color:var(--border2);background:rgba(255,255,255,.02)}
         .ob-archetype-card.selected{border-color:var(--gold);background:rgba(29,185,84,.06)}
-        .ob-arch-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.01em}
+        .ob-arch-name{font-family:var(--font-heading);font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.01em}
         .ob-arch-desc{font-size:12px;color:var(--muted);line-height:1.5}
         .ob-arch-bpm{font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-top:4px;letter-spacing:.06em}
       `}</style>

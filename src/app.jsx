@@ -29,10 +29,10 @@ function StatCard({ label, value, sub }) {
 function Home({ onNavigate, completion }) {
   const profile = useProfile();
   const phases = [
-    { name: 'Foundation', color: '#5b9bd5', tag: 'Weeks 1–2',   desc: 'Identity, gear, genre — the prerequisites before you touch a fader' },
-    { name: 'Theory',     color: '#1db954', tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
-    { name: 'Craft',      color: '#9b6de0', tag: 'Months 2–4',  desc: 'The actual mixing — bass swaps, breakdowns, FX, energy architecture' },
-    { name: 'Practice',   color: '#1db954', tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
+    { name: 'Foundation', colorVar: 'var(--accent2)', tag: 'Weeks 1–2',   desc: 'Identity, gear, genre — the prerequisites before you touch a fader' },
+    { name: 'Theory',     colorVar: 'var(--gold)',    tag: 'Weeks 2–6',   desc: 'Music theory, beatmatching, phrasing — the language of mixing' },
+    { name: 'Craft',      colorVar: 'var(--accent1)', tag: 'Months 2–4',  desc: 'The actual mixing — bass swaps, breakdowns, FX, energy architecture' },
+    { name: 'Practice',   colorVar: 'var(--gold)',    tag: 'Months 4–6',  desc: 'Library, training, and getting ready for your first gig' },
   ];
   const byPhase = phases.map(p => ({ ...p, chapters: CHAPTERS.filter(c => c.phase === p.name) }));
   const done = CHAPTERS.filter(c => completion[c.id]).length;
@@ -43,7 +43,7 @@ function Home({ onNavigate, completion }) {
         .hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid rgba(40,40,40,.8);position:relative;overflow:hidden}
         .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:12px}
         .hero-eyebrow::before{content:'';width:28px;height:1px;background:var(--gold);opacity:.7}
-        .hero-title{font-family:var(--font-sans);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:780px;text-wrap:balance}
+        .hero-title{font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);font-weight:800;color:var(--text);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:780px;text-wrap:balance}
         .hero-title em{color:var(--gold);font-style:normal;font-weight:800}
         .hero-sub{font-size:17px;color:var(--text-dim);line-height:1.6;max-width:640px}
         .hero-glyph{position:absolute;top:-20px;right:0;width:140px;height:140px;opacity:.35;pointer-events:none}
@@ -51,7 +51,7 @@ function Home({ onNavigate, completion }) {
 
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
-        .stat{background:#181818;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+        .stat{background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
         .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),rgba(29,185,84,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-sans);font-size:28px;color:var(--gold);font-weight:800;line-height:1;letter-spacing:-.02em}
@@ -60,7 +60,7 @@ function Home({ onNavigate, completion }) {
         .phase{margin-bottom:44px}
         .phase-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
         .phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-        .phase-name{font-family:var(--font-sans);font-size:16px;color:var(--text);letter-spacing:-.01em;font-weight:700}
+        .phase-name{font-family:var(--font-heading);font-size:16px;color:var(--text);letter-spacing:-.01em;font-weight:700}
         .phase-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .phase-desc{font-size:13px;color:var(--muted);margin-left:auto;font-style:italic}
         @media(max-width:900px){.phase-desc{display:none}}
@@ -69,41 +69,41 @@ function Home({ onNavigate, completion }) {
         .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:12px}
         .ch-card{padding:18px 20px;cursor:pointer;display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;font-family:inherit;background:none;border:none;width:100%;position:relative}
         .ch-card-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
-        .ch-card-title{font-family:var(--font-sans);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:600;margin-top:2px}
+        .ch-card-title{font-family:var(--font-heading);font-size:15px;color:var(--text);line-height:1.3;letter-spacing:-.01em;font-weight:700;margin-top:2px}
         .ch-card-sub{font-size:13px;color:var(--muted);line-height:1.6;font-style:italic;margin-top:auto;padding-top:8px}
-        .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .2s}
+        .ch-card-status{position:absolute;top:16px;right:16px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all var(--dur) var(--ease)}
         .ch-card.done .ch-card-status{background:var(--green);border-color:var(--green)}
         .ch-card.done .ch-card-status svg{display:block}
         .ch-card-status svg{width:10px;height:10px;display:none}
 
         .quote-inner{padding:28px 32px;position:relative}
         .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
-        .quote-text{font-family:var(--font-sans);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
+        .quote-text{font-family:var(--font-heading);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
         .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
       `}</style>
 
       {/* Hero */}
       <div className="hero">
         <BackgroundBeams />
-        <svg className="hero-glyph" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="56" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="42" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="28" fill="none" stroke="#1db954" strokeWidth="0.5" opacity="0.35"/>
-          <circle cx="60" cy="60" r="6" fill="#1db954" opacity="0.8"/>
+        <svg className="hero-glyph" viewBox="0 0 120 120" style={{color:'var(--gold)'}}>
+          <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="28" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.35"/>
+          <circle cx="60" cy="60" r="6" fill="currentColor" opacity="0.8"/>
           {Array.from({ length: 12 }).map((_, i) => {
             const a = i * 30 * Math.PI / 180;
-            return <line key={i} x1={60 + 30 * Math.cos(a)} y1={60 + 30 * Math.sin(a)} x2={60 + 54 * Math.cos(a)} y2={60 + 54 * Math.sin(a)} stroke="#1db954" strokeWidth="0.5" opacity="0.4" />;
+            return <line key={i} x1={60 + 30 * Math.cos(a)} y1={60 + 30 * Math.sin(a)} x2={60 + 54 * Math.cos(a)} y2={60 + 54 * Math.sin(a)} stroke="currentColor" strokeWidth="0.5" opacity="0.4" />;
           })}
         </svg>
-        <div className="hero-eyebrow">YOUR PATH · PROGRESSIVE PSYTRANCE</div>
+        <div className="hero-eyebrow">{profile.name.toUpperCase()} · YOUR PATH</div>
         <h1 className="hero-title">From <em>floating</em> to <em>explosive</em> — your six-month return to the decks.</h1>
-        <p className="hero-sub">Twelve chapters, organised into four phases. Interactive visual aids for every technique that benefits from one. Track your progress, mark your milestones, and let the path do the worrying for you.</p>
+        <p className="hero-sub">Twelve chapters, four phases. Interactive visual aids for every technique that needs one. Work through it in order, or jump to what you need.</p>
       </div>
 
       {/* Stats */}
       <div className="stats">
-        <StatCard label="Chapters complete" value={done} sub="/ 12" />
-        <StatCard label="Path phase" value={done < 3 ? 'Foundation' : done < 6 ? 'Theory' : done < 9 ? 'Craft' : 'Practice'} />
+        <StatCard label="Chapters done" value={done} sub="/ 12" />
+        <StatCard label="Phase" value={done < 3 ? 'Foundation' : done < 6 ? 'Theory' : done < 9 ? 'Craft' : 'Practice'} />
         <StatCard label="BPM home" value={profile.bpmHome} sub="BPM" />
         <StatCard label="Home key" value="8A" sub="Am" />
       </div>
@@ -112,7 +112,7 @@ function Home({ onNavigate, completion }) {
       {byPhase.map(p => (
         <div className="phase" key={p.name}>
           <div className="phase-head">
-            <div className="phase-dot" style={{ background: p.color, boxShadow: `0 0 10px ${p.color}` }} />
+            <div className="phase-dot" style={{ background: p.colorVar, boxShadow: `0 0 10px ${p.colorVar}` }} />
             <div className="phase-name">{p.name}</div>
             <div className="phase-tag">{p.tag}</div>
             <div className="phase-line" />
@@ -126,7 +126,7 @@ function Home({ onNavigate, completion }) {
                 <SpotlightCard key={ch.id}>
                   <button className={'ch-card ' + (isDone ? 'done' : '')} onClick={() => onNavigate(ch.id)}>
                     <div className="ch-card-status">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#121212" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
@@ -165,12 +165,12 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
     <div className="page">
       <style>{`
         .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(40,40,40,.8);gap:14px}
-        .ch-foot-btn{flex:1;background:#181818;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color 150ms ease,background 150ms ease,transform 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
+        .ch-foot-btn{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 18px;text-align:left;cursor:pointer;transition:border-color 150ms ease,background 150ms ease,transform 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px}
         .ch-foot-btn:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.03);transform:translateY(-1px)}
         .ch-foot-btn.right{text-align:right}
         .ch-foot-btn.disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
         .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
-        .ch-foot-title{font-family:var(--font-sans);font-size:14px;color:var(--gold);font-weight:600;letter-spacing:-.01em}
+        .ch-foot-title{font-family:var(--font-heading);font-size:14px;color:var(--gold);font-weight:700;letter-spacing:-.01em}
       `}</style>
 
       <div className="ch-header">
@@ -180,7 +180,7 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
           <div className="ch-subtitle">{chapter.subtitle}</div>
         </div>
         <button className={'ch-done-btn ' + (isDone ? 'done' : '')} onClick={onToggleDone}>
-          {isDone ? '✓ Completed' : 'Mark complete'}
+          {isDone ? '✓ Done' : 'Mark done'}
         </button>
       </div>
 
@@ -244,14 +244,11 @@ function App() {
       <nav id="sidebar" className={sbOpen ? 'open' : ''}>
         <div className="sb-header">
           <div className="sb-mark">
-            <div className="sb-mark-glyph" />
-            <div>
-              <div className="sb-mark-title">DJ Path</div>
-            </div>
+            <img src="/dj-training/assets/logo.svg" alt="Crate." height="28" style={{display:'block'}} />
           </div>
           <div className="sb-sub">{profile.tagline}</div>
           <div className="sb-progress-row">
-            <span>PROGRESS</span>
+            <span>PATH</span>
             <span className="sb-progress-pct">{done}/12 · {pct}%</span>
           </div>
           <Progress value={pct} className="mt-1" />
@@ -259,7 +256,7 @@ function App() {
 
         <ScrollArea className="sb-scroll">
           <button className={'sb-btn ' + (route === 'home' ? 'active' : '')} onClick={() => go('home')}>
-            <span className="num">◆</span><span className="label">Learning Path</span>
+            <span className="num">◆</span><span className="label">Overview</span>
           </button>
 
           {['Foundation', 'Theory', 'Craft', 'Practice'].map((phase, pi) => (
@@ -290,7 +287,7 @@ function App() {
             style={{background:'none',border:'none',color:'var(--muted)',fontFamily:'var(--font-mono)',fontSize:'10px',letterSpacing:'.06em',cursor:'pointer',textAlign:'left',padding:0,textDecoration:'underline',textDecorationColor:'rgba(138,138,138,.3)'}}
             onClick={handleResetProfile}
           >
-            Reset sound profile
+            Change archetype
           </button>
         </div>
       </nav>
