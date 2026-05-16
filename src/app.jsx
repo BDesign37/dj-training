@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CHAPTERS } from './chapters';
 import { useLocal } from './visualizers';
 import { PROFILES } from './profiles';
@@ -36,6 +36,7 @@ function Home({ onNavigate, completion }) {
   ];
   const byPhase = phases.map(p => ({ ...p, chapters: CHAPTERS.filter(c => c.phase === p.name) }));
   const done = CHAPTERS.filter(c => completion[c.id]).length;
+  const allDone = done === CHAPTERS.length;
 
   return (
     <div className="home">
@@ -80,7 +81,23 @@ function Home({ onNavigate, completion }) {
         .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
         .quote-text{font-family:var(--font-heading);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
         .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
+
+        .path-complete-banner{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:var(--r-lg);padding:24px 28px;margin-bottom:48px;display:flex;align-items:center;gap:20px}
+        .pcb-icon{font-size:28px;flex-shrink:0;line-height:1}
+        .pcb-title{font-family:var(--font-heading);font-size:20px;font-weight:800;color:var(--success);letter-spacing:-.02em;margin-bottom:4px}
+        .pcb-sub{font-size:14px;color:var(--text-dim);line-height:1.6}
       `}</style>
+
+      {/* Path complete state */}
+      {allDone && (
+        <div className="path-complete-banner">
+          <div className="pcb-icon">🎯</div>
+          <div>
+            <div className="pcb-title">Path complete</div>
+            <div className="pcb-sub">All 12 chapters done. Your foundation is solid — now it's about reps, recordings, and finding your room.</div>
+          </div>
+        </div>
+      )}
 
       {/* Hero */}
       <div className="hero">
@@ -157,9 +174,25 @@ function Home({ onNavigate, completion }) {
 // ── Chapter view ──────────────────────────────────────────────
 function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext }) {
   const Comp = chapter.Comp;
+  const [showStickyDone, setShowStickyDone] = useState(false);
+
   useEffect(() => {
-    document.getElementById('main').scrollTop = 0;
+    const mainEl = document.getElementById('main');
+    if (mainEl) mainEl.scrollTop = 0;
+    setShowStickyDone(false);
   }, [chapter.id]);
+
+  useEffect(() => {
+    const mainEl = document.getElementById('main');
+    if (!mainEl) return;
+    const handler = () => {
+      const scrolled = mainEl.scrollTop;
+      const scrollable = mainEl.scrollHeight - mainEl.clientHeight;
+      setShowStickyDone(scrollable > 0 && scrolled / scrollable >= 0.8);
+    };
+    mainEl.addEventListener('scroll', handler, { passive: true });
+    return () => mainEl.removeEventListener('scroll', handler);
+  }, []);
 
   return (
     <div className="page">
@@ -167,8 +200,7 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
         .ch-foot{display:flex;justify-content:space-between;align-items:center;margin-top:64px;padding-top:24px;border-top:1px solid rgba(40,40,40,.8);gap:14px}
         .ch-foot-btn{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;text-align:left;cursor:pointer;transition:border-color 200ms ease-out,background 200ms ease-out,transform 200ms ease-out,opacity 150ms ease;display:flex;flex-direction:column;gap:4px;font-family:inherit;color:inherit;max-width:260px;min-height:40px}
         .ch-foot-btn:hover{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.03);transform:translateY(-2px)}
-        .ch-foot-btn.right{text-align:right}
-        .ch-foot-btn.disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+        .ch-foot-btn.right{text-align:right;margin-left:auto}
         .ch-foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
         .ch-foot-title{font-family:var(--font-heading);font-size:14px;color:var(--gold);font-weight:700;letter-spacing:-.01em}
       `}</style>
@@ -179,7 +211,11 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
           <h1 className="ch-title">{chapter.title}</h1>
           <div className="ch-subtitle">{chapter.subtitle}</div>
         </div>
-        <button className={'ch-done-btn ' + (isDone ? 'done' : '')} onClick={onToggleDone}>
+        <button
+          className={'ch-done-btn ' + (isDone ? 'done' : '')}
+          onClick={onToggleDone}
+          aria-label={isDone ? `Chapter ${idx + 1} marked complete — click to undo` : `Mark Chapter ${idx + 1} as complete`}
+        >
           {isDone ? '✓ Done' : 'Mark done'}
         </button>
       </div>
@@ -187,15 +223,32 @@ function ChapterView({ chapter, idx, total, isDone, onToggleDone, onPrev, onNext
       <Comp />
 
       <div className="ch-foot">
-        <button className={'ch-foot-btn ' + (idx === 0 ? 'disabled' : '')} onClick={onPrev} disabled={idx === 0}>
-          <div className="ch-foot-label">← Previous</div>
-          <div className="ch-foot-title">{idx > 0 ? CHAPTERS[idx - 1].title : '—'}</div>
-        </button>
-        <button className={'ch-foot-btn right ' + (idx === total - 1 ? 'disabled' : '')} onClick={onNext} disabled={idx === total - 1}>
-          <div className="ch-foot-label">Next →</div>
-          <div className="ch-foot-title">{idx < total - 1 ? CHAPTERS[idx + 1].title : '—'}</div>
-        </button>
+        {idx > 0 ? (
+          <button className="ch-foot-btn" onClick={onPrev}>
+            <div className="ch-foot-label">← Previous</div>
+            <div className="ch-foot-title">{CHAPTERS[idx - 1].title}</div>
+          </button>
+        ) : <div />}
+        {idx < total - 1 ? (
+          <button className="ch-foot-btn right" onClick={onNext}>
+            <div className="ch-foot-label">Next →</div>
+            <div className="ch-foot-title">{CHAPTERS[idx + 1].title}</div>
+          </button>
+        ) : <div />}
       </div>
+
+      {/* Sticky done bar — mobile only, appears after 80% scroll */}
+      {showStickyDone && (
+        <div className="sticky-done-bar">
+          <button
+            className={'ch-done-btn ' + (isDone ? 'done' : '')}
+            onClick={onToggleDone}
+            aria-label={isDone ? `Chapter ${idx + 1} marked complete — click to undo` : `Mark Chapter ${idx + 1} as complete`}
+          >
+            {isDone ? '✓ Done' : 'Mark done'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -207,18 +260,44 @@ function App() {
   const [sbOpen, setSbOpen] = useState(false);
   const [savedProfile, setSavedProfile] = useLocal('djpath_profile', null);
   const [showOnboarding, setShowOnboarding] = useState(!savedProfile);
+  const [practiceLog] = useLocal('practice-log', {});
+  const [showArchetypeConfirm, setShowArchetypeConfirm] = useState(false);
+  const [completionBanner, setCompletionBanner] = useState(null);
+  const [showFirstReturn, setShowFirstReturn] = useState(false);
+  const bannerTimerRef = useRef(null);
+
   const profile = savedProfile ? (PROFILES[savedProfile.archetype] || PROFILES['israeli-progressive']) : PROFILES['israeli-progressive'];
 
-  function handleOnboardingComplete(profileData) {
-    setSavedProfile(profileData);
-    setShowOnboarding(false);
-  }
+  const done = CHAPTERS.filter(c => completion[c.id]).length;
+  const pct  = Math.round(done / CHAPTERS.length * 100);
+  const allDone = done === CHAPTERS.length;
 
-  function handleResetProfile() {
-    setSavedProfile(null);
-    setShowOnboarding(true);
-  }
+  // Streak from practice log
+  const streak = (() => {
+    let s = 0;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const toKey = d => d.toISOString().slice(0,10);
+    let d = new Date(today);
+    while (practiceLog[toKey(d)]) { s++; d.setDate(d.getDate() - 1); }
+    return s;
+  })();
 
+  // First-return toast: show once when profile exists but no progress made yet
+  useEffect(() => {
+    if (savedProfile && done === 0 && !localStorage.getItem('crate_first_return_seen')) {
+      setShowFirstReturn(true);
+    }
+  }, []); // intentionally runs once on mount
+
+  // Close sidebar on Escape
+  useEffect(() => {
+    if (!sbOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setSbOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sbOpen]);
+
+  // Hash routing
   useEffect(() => {
     const fn = () => setRoute(location.hash.replace('#', '') || 'home');
     window.addEventListener('hashchange', fn);
@@ -230,18 +309,108 @@ function App() {
     setSbOpen(false);
   }
 
+  function handleOnboardingComplete(profileData) {
+    setSavedProfile(profileData);
+    setShowOnboarding(false);
+    location.hash = 'identity'; // Land on Chapter 1, not the dashboard
+  }
+
+  function handleResetProfile() {
+    setShowArchetypeConfirm(true);
+  }
+
+  function confirmArchetypeChange() {
+    setShowArchetypeConfirm(false);
+    setSavedProfile(null);
+    setShowOnboarding(true);
+  }
+
+  function handleToggleDone(chapterId) {
+    const wasntDone = !completion[chapterId];
+    setCompletion(c => ({ ...c, [chapterId]: !c[chapterId] }));
+    if (wasntDone) {
+      const chIdx = CHAPTERS.findIndex(c => c.id === chapterId);
+      const nextCh = chIdx < CHAPTERS.length - 1 ? CHAPTERS[chIdx + 1] : null;
+      // Show the Ch1 extra line once, the first time Ch1 is completed
+      const isFirstCh = chapterId === 'identity';
+      const showExtra = isFirstCh && !localStorage.getItem('crate_ch1_extra_shown');
+      if (showExtra) localStorage.setItem('crate_ch1_extra_shown', '1');
+      setCompletionBanner({
+        chapterNum: chIdx + 1,
+        nextTitle: nextCh?.title,
+        extra: showExtra ? "That's your foundation. Everything else builds from here." : null,
+      });
+      if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
+      bannerTimerRef.current = setTimeout(() => setCompletionBanner(null), 3000);
+    }
+  }
+
   const idx = CHAPTERS.findIndex(c => c.id === route);
   const chapter = idx >= 0 ? CHAPTERS[idx] : null;
-  const done = CHAPTERS.filter(c => completion[c.id]).length;
-  const pct  = Math.round(done / CHAPTERS.length * 100);
 
   return (
     <ProfileContext.Provider value={profile}>
     <TooltipProvider>
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+
+      {/* Completion banner */}
+      {completionBanner && (
+        <div className="completion-banner" role="status" aria-live="polite">
+          <span className="cb-main">
+            Chapter {completionBanner.chapterNum} done.
+            {completionBanner.nextTitle ? ` Next: ${completionBanner.nextTitle} →` : ' Path complete.'}
+          </span>
+          {completionBanner.extra && (
+            <span className="cb-extra">{completionBanner.extra}</span>
+          )}
+          <button className="cb-dismiss" onClick={() => setCompletionBanner(null)} aria-label="Dismiss">✕</button>
+        </div>
+      )}
+
+      {/* First-return toast */}
+      {showFirstReturn && (
+        <div className="first-return-toast" role="status" aria-live="polite">
+          <span>Chapter 1 is ready when you are.</span>
+          <button
+            className="frt-dismiss"
+            aria-label="Dismiss"
+            onClick={() => {
+              localStorage.setItem('crate_first_return_seen', '1');
+              setShowFirstReturn(false);
+            }}
+          >✕</button>
+        </div>
+      )}
+
+      {/* Archetype change confirmation */}
+      {showArchetypeConfirm && (
+        <div
+          className="arch-confirm-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="arch-confirm-msg"
+          onClick={e => { if (e.target === e.currentTarget) setShowArchetypeConfirm(false); }}
+        >
+          <div className="arch-confirm-modal">
+            <p id="arch-confirm-msg" className="arch-confirm-body">
+              Changing your sound identity will update your personalised content. Your progress is saved.
+            </p>
+            <div className="arch-confirm-actions">
+              <button className="arch-confirm-yes" onClick={confirmArchetypeChange}>Change identity</button>
+              <button className="arch-confirm-no" onClick={() => setShowArchetypeConfirm(false)}>Keep current</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="mobile-header">
         <img src="/dj-training/assets/logo.svg" alt="Crate." width={110} style={{display:'block',height:'auto'}} />
-        <button className="mobile-hamburger" onClick={() => setSbOpen(o => !o)} aria-label="Open menu">
+        <button
+          className="mobile-hamburger"
+          onClick={() => setSbOpen(o => !o)}
+          aria-label={sbOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={sbOpen}
+        >
           <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
             <rect width="16" height="1.5" rx="0.75" fill="currentColor"/>
             <rect y="5.25" width="16" height="1.5" rx="0.75" fill="currentColor"/>
@@ -250,23 +419,50 @@ function App() {
         </button>
       </header>
 
-      <nav id="sidebar" className={sbOpen ? 'open' : ''}>
+      {/* Mobile sidebar backdrop */}
+      {sbOpen && (
+        <div className="sb-backdrop" onClick={() => setSbOpen(false)} aria-hidden="true" />
+      )}
+
+      <nav id="sidebar" className={sbOpen ? 'open' : ''} aria-label="Learning path">
         <div className="sb-header">
           <div className="sb-mark">
             <img src="/dj-training/assets/logo.svg" alt="Crate." width={150} style={{display:'block', height:'auto'}} />
           </div>
           <div className="sb-sub">{profile.tagline}</div>
-          <div className="sb-progress-row">
-            <span>PATH</span>
-            <span className="sb-progress-pct">{done}/12 · {pct}%</span>
-          </div>
-          <Progress value={pct} className="mt-1" />
+
+          {allDone ? (
+            <div className="sb-path-complete">Path complete 🎯</div>
+          ) : (
+            <>
+              <div className="sb-progress-row">
+                <span>PATH</span>
+                <span className="sb-progress-pct">{done}/12 · {pct}%</span>
+              </div>
+              <Progress value={pct} className="mt-1" aria-label={`${done} of 12 chapters complete`} />
+              {streak > 0 && (
+                <button
+                  className="sb-streak"
+                  onClick={() => go('training')}
+                  aria-label={`${streak}-day practice streak — go to Training`}
+                >
+                  <span aria-hidden="true">🔥</span>
+                  <span className="sb-streak-val">{streak}</span>
+                  <span className="sb-streak-label">day streak</span>
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         <ScrollArea className="sb-scroll">
-          <button className={'sb-btn ' + (route === 'home' ? 'active' : '')} onClick={() => go('home')}>
-            <span className="num">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <button
+            className={'sb-btn ' + (route === 'home' ? 'active' : '')}
+            onClick={() => go('home')}
+            aria-current={route === 'home' ? 'page' : undefined}
+          >
+            <span className="num" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                 <rect x="1" y="4.5" width="8" height="5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
                 <path d="M0 5L5 1L10 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -281,12 +477,29 @@ function App() {
               <div className="sb-list">
                 {CHAPTERS.filter(c => c.phase === phase).map(c => {
                   const ci = CHAPTERS.findIndex(x => x.id === c.id);
+                  const isActive = route === c.id;
+                  const isDoneChapter = !!completion[c.id];
+                  const btnClass = ['sb-btn', isActive ? 'active' : '', isDoneChapter && !isActive ? 'done' : ''].filter(Boolean).join(' ');
                   return (
                     <Tooltip key={c.id} content={c.title} side="right">
-                      <button className={'sb-btn ' + (route === c.id ? 'active' : '')} onClick={() => go(c.id)}>
+                      <button
+                        className={btnClass}
+                        onClick={() => go(c.id)}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
                         <span className="num">{String(ci + 1).padStart(2, '0')}</span>
                         <span className="label">{c.short}</span>
-                        <span className={'dot ' + (completion[c.id] ? 'done' : '')} />
+                        {isDoneChapter ? (
+                          <svg
+                            width="10" height="10" viewBox="0 0 10 10" fill="none"
+                            aria-label="Completed"
+                            className="sb-done-check"
+                          >
+                            <path d="M1.5 5L4 7.5L8.5 2.5" stroke="var(--success)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        ) : (
+                          <span className="dot" aria-hidden="true" />
+                        )}
                       </button>
                     </Tooltip>
                   );
@@ -298,7 +511,11 @@ function App() {
 
         <div className="sb-footer">
           <span className="sb-footer-meta">FLX4 · Rekordbox</span>
-          <button className="sb-footer-action" onClick={handleResetProfile}>
+          <button
+            className="sb-footer-action"
+            onClick={handleResetProfile}
+            aria-label="Change sound identity archetype"
+          >
             Change archetype
           </button>
         </div>
@@ -315,9 +532,9 @@ function App() {
             idx={idx}
             total={CHAPTERS.length}
             isDone={!!completion[chapter.id]}
-            onToggleDone={() => setCompletion(c => ({ ...c, [chapter.id]: !c[chapter.id] }))}
-            onPrev={() => go(idx > 0 ? CHAPTERS[idx - 1].id : 'home')}
-            onNext={() => go(idx < CHAPTERS.length - 1 ? CHAPTERS[idx + 1].id : 'home')}
+            onToggleDone={() => handleToggleDone(chapter.id)}
+            onPrev={() => go(CHAPTERS[idx - 1].id)}
+            onNext={() => go(CHAPTERS[idx + 1].id)}
           />
         )}
       </main>

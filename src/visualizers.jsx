@@ -925,6 +925,10 @@ export function PracticeTracker(){
       <style>{`
         .pt-wrap{font-family:var(--font-sans);margin:24px 0}
 
+        /* Empty state */
+        .pt-empty{padding:16px;background:rgba(99,102,241,.04);border:1px solid rgba(99,102,241,.12);border-radius:var(--r);margin-bottom:16px}
+        .pt-empty-text{font-family:var(--font-sans);font-size:13px;color:var(--muted);line-height:1.6}
+
         /* Stats */
         .pt-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid rgba(255,255,255,.08);border-radius:var(--r);overflow:hidden;margin-bottom:20px;background:var(--surface)}
         @media(max-width:560px){.pt-stats{grid-template-columns:1fr}}
@@ -973,6 +977,13 @@ export function PracticeTracker(){
         .pt-mark-btn:disabled{opacity:.3;cursor:default}
         .pt-mark-btn.is-done{background:rgba(99,102,241,.25);border:1px solid var(--accent)}
       `}</style>
+
+      {/* Empty state */}
+      {totalDays === 0 && (
+        <div className="pt-empty">
+          <div className="pt-empty-text">No sessions yet. Your streak starts the moment you mark your first practice done.</div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="pt-stats">

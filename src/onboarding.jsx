@@ -137,9 +137,10 @@ function Step2({ artists, onResult }) {
       const scores = scoreArchetypes(allTags);
       const detected = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
       const confidence = getConfidence(scores, detected);
+      const apiError = allTags.length === 0;
       setDone(true);
       setStatus('Done.');
-      setTimeout(() => { if (!cancelled) onResult({ detected, confidence, scores, detectedFrom: artists }); }, 400);
+      setTimeout(() => { if (!cancelled) onResult({ detected, confidence, scores, detectedFrom: artists, apiError }); }, 400);
     }
     run();
     return () => { cancelled = true; };
@@ -157,7 +158,7 @@ function Step2({ artists, onResult }) {
 }
 
 // ── Step 3: Result + archetype selection ─────────────────────
-function Step3({ detected, confidence, detectedFrom, onConfirm }) {
+function Step3({ detected, confidence, detectedFrom, apiError, onConfirm }) {
   const [selected, setSelected] = useState(detected);
   const profile = PROFILES[selected];
   const confidenceLabel = confidence === 'strong' ? 'Strong match' : confidence === 'partial' ? 'Partial match' : 'Nearest match — you might sit between archetypes.';
@@ -166,20 +167,31 @@ function Step3({ detected, confidence, detectedFrom, onConfirm }) {
   return (
     <div className="ob-step">
       <div className="ob-eyebrow">Sound Identity · Step 3 of 3</div>
-      <div className="ob-result-header">
-        <div className="ob-result-label">Your sound:</div>
-        <div className="ob-result-name">{profile.name}</div>
-        <div className="ob-result-tagline">{profile.tagline}</div>
-      </div>
 
-      <div className="ob-confidence">
-        <div className="ob-conf-label">{confidenceLabel}</div>
-        <div className="ob-conf-bar"><div className="ob-conf-fill" style={{ width: confidencePct + '%' }} /></div>
-      </div>
+      {apiError ? (
+        <div className="ob-api-fallback">
+          <p className="ob-api-fallback-msg">We couldn't reach your artists right now. Pick your closest sound identity below:</p>
+        </div>
+      ) : (
+        <>
+          <div className="ob-result-header">
+            <div className="ob-result-label">Your sound:</div>
+            <div className="ob-result-name">{profile.name}</div>
+            <div className="ob-result-tagline">{profile.tagline}</div>
+          </div>
 
-      <div className="ob-result-desc">{ARCHETYPE_DESCRIPTIONS[selected]}</div>
+          <div className="ob-confidence">
+            <div className="ob-conf-label">{confidenceLabel}</div>
+            <div className="ob-conf-bar"><div className="ob-conf-fill" style={{ width: confidencePct + '%' }} /></div>
+          </div>
 
-      <div className="ob-override-label">Not your sound? Pick manually:</div>
+          <div className="ob-result-desc">{ARCHETYPE_DESCRIPTIONS[selected]}</div>
+        </>
+      )}
+
+      <p className="ob-reassure">Don't worry if you're not sure yet — your sound develops as you learn. You can always change this later.</p>
+
+      <div className="ob-override-label">{apiError ? 'Choose your sound identity:' : 'Not your sound? Pick manually:'}</div>
       <div className="ob-archetype-grid">
         {Object.keys(PROFILES).map(key => (
           <button
@@ -198,7 +210,7 @@ function Step3({ detected, confidence, detectedFrom, onConfirm }) {
         className="ob-btn-primary"
         onClick={() => onConfirm({ archetype: selected, bpmHome: PROFILES[selected].bpmHome, detectedFrom, confirmedAt: Date.now() })}
       >
-        This is me — start the path →
+        Start your path →
       </button>
     </div>
   );
@@ -244,6 +256,7 @@ export function OnboardingModal({ onComplete }) {
 
         .ob-spinner{font-size:48px;color:var(--gold);animation:ob-spin 1.2s linear infinite;margin-bottom:16px}
         @keyframes ob-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @media(prefers-reduced-motion:reduce){.ob-spinner{animation:none}}
         .ob-detect-status{font-family:var(--font-mono);font-size:13px;color:var(--text-dim);letter-spacing:.04em}
         .ob-detect-artists{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
         .ob-artist-pill{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:20px;padding:4px 12px;font-family:var(--font-mono);font-size:11px;color:var(--gold)}
@@ -267,6 +280,9 @@ export function OnboardingModal({ onComplete }) {
         .ob-arch-name{font-family:var(--font-heading);font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.01em}
         .ob-arch-desc{font-size:12px;color:var(--muted);line-height:1.5}
         .ob-arch-bpm{font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-top:4px;letter-spacing:.06em}
+
+        .ob-reassure{font-size:13px;color:var(--muted);line-height:1.6;margin:0;font-style:italic}
+        .ob-api-fallback-msg{font-size:14px;color:var(--text-dim);line-height:1.6;margin:0;padding:14px 16px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:8px}
       `}</style>
 
       <div className="ob-modal">
@@ -277,6 +293,7 @@ export function OnboardingModal({ onComplete }) {
             detected={result.detected}
             confidence={result.confidence}
             detectedFrom={result.detectedFrom}
+            apiError={result.apiError}
             onConfirm={onComplete}
           />
         )}
