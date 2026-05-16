@@ -1,9 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { CHAPTERS } from './chapters';
 import { useLocal } from './visualizers';
 import { PROFILES } from './profiles';
 import { ProfileContext, useProfile } from './ProfileContext';
 import { OnboardingModal } from './onboarding';
+import {
+  FeedbackContext,
+  FeedbackPanel,
+  FeedbackAdminView,
+  useFeedbackCount,
+} from './feedback';
 import { BackgroundBeams } from '@/components/aceternity/background-beams';
 import { SpotlightCard }   from '@/components/aceternity/card-hover-effect';
 import { ShimmerBorder }   from '@/components/aceternity/shimmer-border';
@@ -263,7 +269,15 @@ function App() {
   const [completionBanner, setCompletionBanner] = useState(null);
   const [showFirstReturn, setShowFirstReturn] = useState(false);
   const [controller, setController] = useLocal('djpath_controller', 'DDJ-FLX4');
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackOpts, setFeedbackOpts] = useState({});
   const bannerTimerRef = useRef(null);
+  const unreadCount = useFeedbackCount();
+
+  const openFeedback = useCallback((opts = {}) => {
+    setFeedbackOpts(opts);
+    setFeedbackOpen(true);
+  }, []);
 
   const profile = savedProfile ? (PROFILES[savedProfile.archetype] || PROFILES['israeli-progressive']) : PROFILES['israeli-progressive'];
 
@@ -348,6 +362,7 @@ function App() {
   const chapter = idx >= 0 ? CHAPTERS[idx] : null;
 
   return (
+    <FeedbackContext.Provider value={{ openFeedback }}>
     <ProfileContext.Provider value={profile}>
     <TooltipProvider>
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
@@ -531,11 +546,21 @@ function App() {
           >
             Change archetype
           </button>
+          {unreadCount > 0 && (
+            <div className="sb-feedback-badge" aria-label={`${unreadCount} unread feedback entries`}>
+              <span className="sb-fb-dot" aria-hidden="true" />
+              <span className="sb-fb-count">{unreadCount} new</span>
+            </div>
+          )}
         </div>
       </nav>
 
       <main id="main">
-        {route === 'home' || !chapter ? (
+        {route === 'feedback-admin' ? (
+          <div className="page wide">
+            <FeedbackAdminView />
+          </div>
+        ) : route === 'home' || !chapter ? (
           <div className="page wide">
             <Home onNavigate={go} completion={completion} />
           </div>
@@ -551,8 +576,46 @@ function App() {
           />
         )}
       </main>
+
+      {/* Feedback trigger — visible on chapter pages only */}
+      {chapter && route !== 'feedback-admin' && (
+        <>
+          <style>{`
+            .fb-trig{position:fixed;bottom:88px;right:24px;z-index:900;
+                     display:flex;align-items:center;gap:7px;padding:0 14px;height:36px;
+                     background:none;border:1px solid rgba(255,255,255,.15);
+                     border-radius:var(--r-sm);font-family:var(--font-sans);font-size:13px;
+                     color:var(--muted);cursor:pointer;white-space:nowrap;
+                     transition:background var(--dur-fast) var(--ease),
+                     color var(--dur-fast) var(--ease),border-color var(--dur-fast) var(--ease)}
+            .fb-trig:hover{background:rgba(255,255,255,.06);color:var(--text);
+                           border-color:rgba(255,255,255,.24)}
+            @media(max-width:700px){.fb-trig{bottom:100px;right:16px;height:44px;padding:0 16px}}
+          `}</style>
+          <button className="fb-trig" onClick={() => openFeedback({})}
+            aria-label="Leave feedback about this chapter">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Feedback
+          </button>
+        </>
+      )}
+
+      {/* Feedback panel */}
+      {feedbackOpen && (
+        <FeedbackPanel
+          chapter={chapter}
+          idx={idx}
+          opts={feedbackOpts}
+          onClose={() => setFeedbackOpen(false)}
+        />
+      )}
+
     </TooltipProvider>
     </ProfileContext.Provider>
+    </FeedbackContext.Provider>
   );
 }
 

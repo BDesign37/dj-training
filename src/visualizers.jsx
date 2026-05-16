@@ -3,6 +3,7 @@
 // =============================================================
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useFeedback } from './feedback';
 import { WALKTHROUGH_DATA, ARCHETYPE_LABELS, ARCHETYPE_ORDER, suitabilityNote } from './walkthroughData';
 
 export function useLocal(key, initial){
@@ -422,6 +423,7 @@ function WalkthroughShell({ techniqueId, children }) {
   const [profile] = useLocal('djpath_profile', null);
   const [controller] = useLocal('djpath_controller', 'DDJ-FLX4');
   const archetype = profile?.archetype;
+  const { openFeedback } = useFeedback();
 
   return (
     <div>
@@ -430,7 +432,20 @@ function WalkthroughShell({ techniqueId, children }) {
         trackB={data.phrasing.trackB}
         suitability={data.suitability}
       />
-      <ViewToggle view={view} onChange={setView} />
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+                   flexWrap:'wrap',gap:8,marginBottom:4}}>
+        <ViewToggle view={view} onChange={setView} />
+        <button
+          style={{background:'none',border:'none',fontFamily:'var(--font-sans)',fontSize:12,
+                  color:'var(--muted)',cursor:'pointer',padding:'6px 0',lineHeight:1,
+                  transition:'color var(--dur-fast) var(--ease)'}}
+          onMouseEnter={e => e.currentTarget.style.color='var(--text-dim)'}
+          onMouseLeave={e => e.currentTarget.style.color='var(--muted)'}
+          onClick={() => openFeedback({ category: 'Technique accuracy', section: data.title })}
+        >
+          Is this accurate?
+        </button>
+      </div>
       {view === 'A' ? children : (
         <StepGuide
           techniqueId={techniqueId}
