@@ -209,6 +209,43 @@ body {
 }
 .sb-footer-action:hover { color: var(--text-dim); }
 
+.sb-controller-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-2);
+}
+.sb-controller-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+.sb-controller-btns {
+  display: flex;
+  gap: 4px;
+}
+.sb-ctrl-btn {
+  flex: 1;
+  padding: 4px 0;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.sb-ctrl-btn:hover { color: var(--text-dim); border-color: rgba(255,255,255,.15); }
+.sb-ctrl-btn.active {
+  background: rgba(99,102,241,.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ── Main ────────────────────────────────────────────────────── */
 #main {
   flex: 1;
