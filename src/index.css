@@ -222,7 +222,7 @@ body {
 #main::-webkit-scrollbar { width: 5px; }
 #main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-.page { padding: var(--sp-7) var(--sp-8) 96px; max-width: 720px; margin: 0 auto; }
+.page { padding: var(--sp-7) var(--sp-8) 96px; max-width: 920px; margin: 0 auto; }
 .page.wide { max-width: 1220px; }
 
 /* ── Chapter header ──────────────────────────────────────────── */
