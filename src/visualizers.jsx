@@ -485,15 +485,15 @@ export function BassSwapVisualizer(){
   const knob = (v, color) => {
     const angle = -135 + v*270;
     return (
-      <svg viewBox="0 0 50 50" width="46" height="46">
-        <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
-        <line x1="25" y1="25" x2="25" y2="9"
-          stroke={color} strokeWidth="3" strokeLinecap="round"
-          opacity={0.3 + 0.7*v}
-          style={{transformBox:'view-box',transformOrigin:'25px 25px',transform:`rotate(${angle}deg)`,transition:'transform .15s ease, opacity .15s ease'}}/>
-        <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}
-          style={{transition:'opacity .15s ease'}}/>
-      </svg>
+      <div style={{position:'relative',width:46,height:46,flexShrink:0}}>
+        <svg viewBox="0 0 50 50" width="46" height="46" style={{position:'absolute',inset:0}}>
+          <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
+          <circle cx="25" cy="25" r="6" fill={color} opacity={0.5+0.5*v}/>
+        </svg>
+        <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .2s ease'}}>
+          <div style={{position:'absolute',left:'50%',top:'50%',width:3,height:16,marginLeft:-1.5,marginTop:-16,background:color,borderRadius:2,opacity:0.3+0.7*v}}/>
+        </div>
+      </div>
     );
   };
 
@@ -1403,15 +1403,15 @@ export function MilestonesTracker(){
 function mkKnob(v, color){
   const angle = -135 + v*270;
   return (
-    <svg viewBox="0 0 50 50" width="46" height="46">
-      <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
-      <line x1="25" y1="25" x2="25" y2="9"
-        stroke={color} strokeWidth="3" strokeLinecap="round"
-        opacity={0.3 + 0.7*v}
-        style={{transformBox:'view-box',transformOrigin:'25px 25px',transform:`rotate(${angle}deg)`,transition:'transform .15s ease, opacity .15s ease'}}/>
-      <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}
-        style={{transition:'opacity .15s ease'}}/>
-    </svg>
+    <div style={{position:'relative',width:46,height:46,flexShrink:0}}>
+      <svg viewBox="0 0 50 50" width="46" height="46" style={{position:'absolute',inset:0}}>
+        <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
+        <circle cx="25" cy="25" r="6" fill={color} opacity={0.5+0.5*v}/>
+      </svg>
+      <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .2s ease'}}>
+        <div style={{position:'absolute',left:'50%',top:'50%',width:3,height:16,marginLeft:-1.5,marginTop:-16,background:color,borderRadius:2,opacity:0.3+0.7*v}}/>
+      </div>
+    </div>
   );
 }
 
