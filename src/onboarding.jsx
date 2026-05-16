@@ -265,7 +265,7 @@ export function OnboardingModal({ onComplete }) {
         .ob-result-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
         .ob-result-name{font-family:var(--font-heading);font-size:24px;font-weight:800;color:var(--gold);letter-spacing:-.02em;line-height:1.2}
         .ob-result-tagline{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px}
-        .ob-result-desc{font-size:14px;color:var(--text-dim);line-height:1.6;background:rgba(99,102,241,.04);border-left:2px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0}
+        .ob-result-desc{font-size:14px;color:var(--text-dim);line-height:1.6;background:rgba(99,102,241,.04);padding:12px 16px;border-radius:6px}
 
         .ob-confidence{display:flex;flex-direction:column;gap:6px}
         .ob-conf-label{font-family:var(--font-mono);font-size:11px;color:var(--gold);letter-spacing:.06em}

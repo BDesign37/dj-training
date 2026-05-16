@@ -172,7 +172,6 @@ body {
   padding: var(--sp-3) var(--sp-4);
   background: none;
   border: none;
-  border-left: 2px solid transparent;
   border-radius: var(--r-sm);
   color: var(--muted);
   font-family: var(--font-sans);
@@ -180,10 +179,10 @@ body {
   font-weight: 400;
   cursor: pointer;
   text-align: left;
-  transition: background 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease), transform 120ms var(--ease);
+  transition: background 120ms var(--ease), color 120ms var(--ease), transform 120ms var(--ease);
 }
 .sb-btn:hover  { color: var(--text-dim); background: rgba(255,255,255,.05); }
-.sb-btn.active { color: var(--text); font-weight: 500; border-left-color: var(--accent); border-left-width: 3px; background: rgba(99,102,241,.1); }
+.sb-btn.active { color: var(--text); font-weight: 500; background: rgba(99,102,241,.1); }
 
 .sb-btn .num { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--muted2); min-width: 22px; opacity: .55; transition: opacity 120ms var(--ease); }
 .sb-btn.active .num { color: var(--gold); opacity: 1; }
@@ -323,11 +322,11 @@ a:hover { color: var(--gold); border-bottom-color: rgba(99,102,241,.4); }
   box-shadow: 0 4px 24px rgba(0,0,0,.4);
   transform: translateY(-2px);
 }
-.card-accent { border-left: 2px solid var(--gold); }
-.card-blue   { border-left: 2px solid var(--accent2); }
-.card-purple { border-left: 2px solid var(--accent1); }
-.card-green  { border-left: 2px solid var(--green); }
-.card-pink   { border-left: 2px solid var(--accent3); }
+.card-accent { }
+.card-blue   { }
+.card-purple { }
+.card-green  { }
+.card-pink   { }
 .card-title {
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
@@ -408,13 +407,12 @@ pre {
 
 /* ── Blockquote ──────────────────────────────────────────────── */
 blockquote {
-  border-left: 2px solid var(--accent1);
   padding: var(--sp-4) var(--sp-5);
   margin: var(--sp-5) 0;
   font-style: italic;
   color: var(--text-dim);
   background: rgba(155,109,224,.05);
-  border-radius: 0 var(--r) var(--r) 0;
+  border-radius: var(--r);
   font-size: var(--fs-md);
   line-height: 1.7;
 }

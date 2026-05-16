@@ -53,7 +53,6 @@ function Home({ onNavigate, completion }) {
         .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
         @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
         .stat{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;position:relative;overflow:hidden}
-        .stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),rgba(99,102,241,.2));border-radius:1px}
         .stat-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
         .stat-val{font-family:var(--font-mono);font-size:28px;color:var(--gold);font-weight:700;line-height:1;letter-spacing:-.02em}
         .stat-val small{font-family:var(--font-sans);font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
@@ -78,7 +77,6 @@ function Home({ onNavigate, completion }) {
         .ch-card.done .ch-card-status svg{opacity:1;transform:scale(1)}
 
         .quote-inner{padding:24px 32px;position:relative}
-        .quote-inner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--gold),var(--accent1));border-radius:2px}
         .quote-text{font-family:var(--font-heading);font-size:20px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:10px;text-wrap:pretty;padding-left:20px;letter-spacing:-.01em}
         .quote-attr{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;padding-left:20px}
 
