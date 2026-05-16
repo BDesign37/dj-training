@@ -484,13 +484,15 @@ export function BassSwapVisualizer(){
 
   const knob = (v, color) => {
     const angle = -135 + v*270;
-    const x2 = 25 + 16*Math.cos((angle-90)*Math.PI/180);
-    const y2 = 25 + 16*Math.sin((angle-90)*Math.PI/180);
     return (
       <svg viewBox="0 0 50 50" width="46" height="46">
         <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
-        <path d={`M 25 25 L ${x2} ${y2}`} stroke={color} strokeWidth="3" strokeLinecap="round" opacity={0.3 + 0.7*v}/>
-        <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}/>
+        <line x1="25" y1="25" x2="25" y2="9"
+          stroke={color} strokeWidth="3" strokeLinecap="round"
+          opacity={0.3 + 0.7*v}
+          style={{transformBox:'view-box',transformOrigin:'25px 25px',transform:`rotate(${angle}deg)`,transition:'transform .15s ease, opacity .15s ease'}}/>
+        <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}
+          style={{transition:'opacity .15s ease'}}/>
       </svg>
     );
   };
@@ -1400,13 +1402,15 @@ export function MilestonesTracker(){
 // =============================================================
 function mkKnob(v, color){
   const angle = -135 + v*270;
-  const x2 = 25 + 16*Math.cos((angle-90)*Math.PI/180);
-  const y2 = 25 + 16*Math.sin((angle-90)*Math.PI/180);
   return (
     <svg viewBox="0 0 50 50" width="46" height="46">
       <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
-      <path d={`M 25 25 L ${x2} ${y2}`} stroke={color} strokeWidth="3" strokeLinecap="round" opacity={0.3 + 0.7*v}/>
-      <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}/>
+      <line x1="25" y1="25" x2="25" y2="9"
+        stroke={color} strokeWidth="3" strokeLinecap="round"
+        opacity={0.3 + 0.7*v}
+        style={{transformBox:'view-box',transformOrigin:'25px 25px',transform:`rotate(${angle}deg)`,transition:'transform .15s ease, opacity .15s ease'}}/>
+      <circle cx="25" cy="25" r="6" fill={color} opacity={0.5 + 0.5*v}
+        style={{transition:'opacity .15s ease'}}/>
     </svg>
   );
 }
