@@ -552,7 +552,7 @@ export function BassSwapVisualizer(){
             <div className="bs-eq">{knob(aMid,'#5b9bd5')}<div className="bs-eq-label">MID</div><div className="bs-eq-val">{Math.round(aMid*100)}%</div></div>
             <div className="bs-eq">{knob(aLow,'#5b9bd5')}<div className="bs-eq-label">LOW</div><div className="bs-eq-val">{Math.round(aLow*100)}%</div></div>
           </div>
-          <div className="bs-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi)} color="#5b9bd5"/></div>
+          <div className="bs-wave"><WaveBars active={Math.min(1, aFad * 2 * Math.max(aLow,aMid,aHi))} color="#5b9bd5"/></div>
         </div>
 
         <div className="bs-deck">
@@ -565,7 +565,7 @@ export function BassSwapVisualizer(){
             <div className="bs-eq">{knob(bMid,'#9b6de0')}<div className="bs-eq-label">MID</div><div className="bs-eq-val">{Math.round(bMid*100)}%</div></div>
             <div className="bs-eq">{knob(bLow,'#9b6de0')}<div className="bs-eq-label">LOW</div><div className="bs-eq-val">{Math.round(bLow*100)}%</div></div>
           </div>
-          <div className="bs-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+          <div className="bs-wave"><WaveBars active={Math.min(1, bFad * 2 * Math.max(bLow,bMid,bHi))} color="#9b6de0"/></div>
         </div>
       </div>
 
@@ -1545,7 +1545,7 @@ export function LongBlendVisualizer(){
             <div className="lb-eq">{mkKnob(aMid,'#5b9bd5')}<div className="lb-eq-label">MID</div><div className="lb-eq-val">{Math.round(aMid*100)}%</div></div>
             <div className="lb-eq">{mkKnob(aLow,'#5b9bd5')}<div className="lb-eq-label">LOW</div><div className="lb-eq-val">{Math.round(aLow*100)}%</div></div>
           </div>
-          <div className="lb-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi)} color="#5b9bd5"/></div>
+          <div className="lb-wave"><WaveBars active={Math.min(1, aFad * 2 * Math.max(aLow,aMid,aHi))} color="#5b9bd5"/></div>
         </div>
 
         <div className="lb-deck">
@@ -1558,7 +1558,7 @@ export function LongBlendVisualizer(){
             <div className="lb-eq">{mkKnob(bMid,'#9b6de0')}<div className="lb-eq-label">MID</div><div className="lb-eq-val">{Math.round(bMid*100)}%</div></div>
             <div className="lb-eq">{mkKnob(bLow,'#9b6de0')}<div className="lb-eq-label">LOW</div><div className="lb-eq-val">{Math.round(bLow*100)}%</div></div>
           </div>
-          <div className="lb-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+          <div className="lb-wave"><WaveBars active={Math.min(1, bFad * 2 * Math.max(bLow,bMid,bHi))} color="#9b6de0"/></div>
         </div>
       </div>
 
@@ -1673,7 +1673,7 @@ export function BreakdownMixVisualizer(){
             <div className="bm-eq">{mkKnob(aMid,'#5b9bd5')}<div className="bm-eq-label">MID</div><div className="bm-eq-val">{Math.round(aMid*100)}%</div></div>
             <div className="bm-eq">{mkKnob(aLow,'#5b9bd5')}<div className="bm-eq-label">LOW</div><div className="bm-eq-val">{Math.round(aLow*100)}%</div></div>
           </div>
-          <div className="bm-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi,0.05)} color="#5b9bd5"/></div>
+          <div className="bm-wave"><WaveBars active={Math.min(1, aFad * 2 * Math.max(aLow,aMid,aHi,0.05))} color="#5b9bd5"/></div>
         </div>
 
         <div className="bm-deck">
@@ -1686,7 +1686,7 @@ export function BreakdownMixVisualizer(){
             <div className="bm-eq">{mkKnob(bMid,'#9b6de0')}<div className="bm-eq-label">MID</div><div className="bm-eq-val">{Math.round(bMid*100)}%</div></div>
             <div className="bm-eq">{mkKnob(bLow,'#9b6de0')}<div className="bm-eq-label">LOW</div><div className="bm-eq-val">{Math.round(bLow*100)}%</div></div>
           </div>
-          <div className="bm-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+          <div className="bm-wave"><WaveBars active={Math.min(1, bFad * 2 * Math.max(bLow,bMid,bHi))} color="#9b6de0"/></div>
         </div>
       </div>
 
@@ -1727,13 +1727,16 @@ export function FilterBlendVisualizer(){
   // A starts at 0.5 (bypass), ramps CW from bar 5. B starts at 0 (LPF max), opens to bypass.
   const aCfx = bar < 4 ? 0.5 : Math.min(1.0, 0.5 + (bar-4)/24);
   const bCfx = bar < 4 ? 0   : bar < 16 ? Math.min(0.5, (bar-4)/24) : 0.5;
-  // EQ stays flat; filter is via CFX. Visual EQ shows "spectral content" thinning as HPF rises.
-  const aHi  = Math.max(0.05, 0.5 - Math.max(0,(bar-4))*0.025);
-  const aMid = Math.max(0.05, 0.5 - Math.max(0,(bar-8))*0.04);
-  const aLow = Math.max(0.05, 0.5 - Math.max(0,(bar-4))*0.04);
+  // EQ stays flat; filter is via CFX. Visual EQ shows spectral content:
+  // HPF (A) passes highs, cuts lows/mids. LPF (B) passes lows/mids, cuts highs.
+  const cfxA = aCfx - 0.5; // HPF depth 0→0.5
+  const cfxB = 0.5 - bCfx; // LPF depth 0.5→0
+  const aHi  = 0.5; // highs pass through HPF unchanged
+  const aMid = Math.max(0.05, 0.5 - cfxA * 0.6);
+  const aLow = Math.max(0.05, 0.5 - cfxA * 1.0);
   const aFad = bar < 16 ? 1.0 : Math.max(0, 1 - (bar-16)/8);
-  const bHi  = bar < 8  ? 0.05 : Math.min(0.5, (bar-8)/16*0.5);
-  const bMid = bar < 4  ? 0.05 : Math.min(0.5, (bar-4)/16*0.5);
+  const bHi  = Math.max(0.05, 0.5 - cfxB * 0.9); // LPF cuts highs
+  const bMid = Math.max(0.05, 0.5 - cfxB * 0.5);
   const bLow = bar < 16 ? 0    : 0.5;
   const bFad = 1.0;
 
@@ -1805,7 +1808,7 @@ export function FilterBlendVisualizer(){
             <div className="fb-eq">{mkKnob(aMid,'#5b9bd5')}<div className="fb-eq-label">MID</div><div className="fb-eq-val">{Math.round(aMid*100)}%</div></div>
             <div className="fb-eq">{mkKnob(aLow,'#5b9bd5')}<div className="fb-eq-label">LOW</div><div className="fb-eq-val">{Math.round(aLow*100)}%</div></div>
           </div>
-          <div className="fb-wave"><WaveBars active={aFad*Math.max(aLow,aMid,aHi)} color="#5b9bd5"/></div>
+          <div className="fb-wave"><WaveBars active={Math.min(1, aFad * 2 * Math.max(aLow,aMid,aHi))} color="#5b9bd5"/></div>
         </div>
 
         <div className="fb-deck">
@@ -1821,7 +1824,7 @@ export function FilterBlendVisualizer(){
             <div className="fb-eq">{mkKnob(bMid,'#9b6de0')}<div className="fb-eq-label">MID</div><div className="fb-eq-val">{Math.round(bMid*100)}%</div></div>
             <div className="fb-eq">{mkKnob(bLow,'#9b6de0')}<div className="fb-eq-label">LOW</div><div className="fb-eq-val">{Math.round(bLow*100)}%</div></div>
           </div>
-          <div className="fb-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+          <div className="fb-wave"><WaveBars active={Math.min(1, bFad * 2 * Math.max(bLow,bMid,bHi))} color="#9b6de0"/></div>
         </div>
       </div>
 
@@ -1860,14 +1863,15 @@ export function LoopExtensionVisualizer(){
 
   const isLooping = bar < 24;
   const loopPhase = (bar % 4) / 4;
-  const aLow = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
-  const aMid = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
-  const aHi  = bar < 24 ? 0.7 : Math.max(0, 0.7-(bar-24)/4);
-  const aFad = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4);
-  const bLow = bar < 8 ? 0 : Math.min(1, (bar-8)/8);
-  const bMid = Math.min(1, Math.max(0,(bar-4)/12));
-  const bHi  = Math.min(1, Math.max(0,(bar-2)/8));
-  const bFad = Math.min(1, Math.max(0,(bar-4)/12));
+  // EQ convention: 0=killed, 0.5=flat (12 o'clock), 1=boosted
+  const aLow = bar < 24 ? 0.5 : 0; // A bass killed on loop exit
+  const aMid = 0.5; // A mids flat throughout
+  const aHi  = bar < 16 ? 0.5 : 0.25; // A hi gently reduced after blend locks
+  const aFad = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4); // A fades out after loop exit
+  const bLow = bar < 24 ? 0 : 0.5; // B bass killed until loop exits, then opens
+  const bMid = 0.5; // B mids flat throughout
+  const bHi  = 0.5; // B hi flat throughout
+  const bFad = Math.min(1, Math.max(0,(bar-4)/12)); // B fader rises bar 4→16
 
   const loopActiveHeight = isLooping ? (0.85 + 0.15*Math.sin(loopPhase*Math.PI*2)) : 1;
 
@@ -1941,7 +1945,7 @@ export function LoopExtensionVisualizer(){
           </div>
           <div className="le-wave">
             {isLooping && <><div className="le-loop-bracket"/><div className="le-loop-label">4-BAR LOOP</div></>}
-            <WaveBars active={aFad*Math.max(aLow,aMid,aHi)*loopActiveHeight} color="#5b9bd5"/>
+            <WaveBars active={Math.min(1, aFad * 2 * Math.max(aLow,aMid,aHi) * loopActiveHeight)} color="#5b9bd5"/>
           </div>
         </div>
 
@@ -1955,11 +1959,11 @@ export function LoopExtensionVisualizer(){
             <div className="le-eq">{mkKnob(bMid,'#9b6de0')}<div className="le-eq-label">MID</div><div className="le-eq-val">{Math.round(bMid*100)}%</div></div>
             <div className="le-eq">{mkKnob(bLow,'#9b6de0')}<div className="le-eq-label">LOW</div><div className="le-eq-val">{Math.round(bLow*100)}%</div></div>
           </div>
-          <div className="le-wave"><WaveBars active={bFad*Math.max(bLow,bMid,bHi)} color="#9b6de0"/></div>
+          <div className="le-wave"><WaveBars active={Math.min(1, bFad * 2 * Math.max(bLow,bMid,bHi))} color="#9b6de0"/></div>
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={0} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={24} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="le-event" style={{marginTop:14}}>{event}</div>
     </div>
     </WalkthroughShell>
@@ -1993,14 +1997,15 @@ export function CutTransitionVisualizer(){
     return ()=>cancelAnimationFrame(rafRef.current);
   },[playing]);
 
-  const aLow = bar < CUT ? 1 : 0;
-  const aMid = bar < CUT ? 1 : 0;
-  const aHi  = bar < CUT ? 1 : 0;
-  const aFad = bar < CUT ? 1 : 0;
-  const bLow = bar < CUT ? 0 : 1;
-  const bMid = bar < CUT ? 0 : 1;
-  const bHi  = bar < CUT ? 0 : 1;
-  const bFad = bar < CUT ? 0 : 1;
+  // EQ convention: 0=killed, 0.5=flat (12 o'clock), 1=boosted
+  const aLow = bar < CUT ? 0.5 : 0;
+  const aMid = bar < CUT ? 0.5 : 0;
+  const aHi  = bar < CUT ? 0.5 : 0;
+  const aFad = bar < CUT ? 1 : 0; // fader is 0-1 (not EQ convention)
+  const bLow = bar < CUT ? 0 : 0.5;
+  const bMid = bar < CUT ? 0 : 0.5;
+  const bHi  = bar < CUT ? 0 : 0.5;
+  const bFad = bar < CUT ? 0 : 1; // fader is 0-1
 
   const event =
     bar < CUT ? 'A at full — no blending. Cue B perfectly.' :
@@ -2076,7 +2081,7 @@ export function CutTransitionVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={3} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={4} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="ct-event" style={{marginTop:14}}>{event}</div>
       <div className="ct-warning">&#9888; Use 1&#8211;2 per set maximum &#8212; more than that and it reads as a mistake, not intention.</div>
     </div>
@@ -2195,7 +2200,7 @@ export function BuildUpChainVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={14} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={15} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className={`bu-event${released?' bu-release':''}`} style={{marginTop:14}} dangerouslySetInnerHTML={{__html:event}}/>
     </div>
     </WalkthroughShell>
