@@ -262,6 +262,7 @@ function App() {
   const [showArchetypeConfirm, setShowArchetypeConfirm] = useState(false);
   const [completionBanner, setCompletionBanner] = useState(null);
   const [showFirstReturn, setShowFirstReturn] = useState(false);
+  const [controller, setController] = useLocal('djpath_controller', 'DDJ-FLX4');
   const bannerTimerRef = useRef(null);
 
   const profile = savedProfile ? (PROFILES[savedProfile.archetype] || PROFILES['israeli-progressive']) : PROFILES['israeli-progressive'];
@@ -508,7 +509,21 @@ function App() {
         </ScrollArea>
 
         <div className="sb-footer">
-          <span className="sb-footer-meta">FLX4 · Rekordbox</span>
+          <div className="sb-controller-row">
+            <span className="sb-controller-label">Controller</span>
+            <div className="sb-controller-btns" role="group" aria-label="Select controller">
+              {['DDJ-200', 'DDJ-FLX4', 'DDJ-FLX6'].map(c => (
+                <button
+                  key={c}
+                  className={'sb-ctrl-btn' + (controller === c ? ' active' : '')}
+                  onClick={() => setController(c)}
+                  aria-pressed={controller === c}
+                >
+                  {c.replace('DDJ-', '')}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             className="sb-footer-action"
             onClick={handleResetProfile}

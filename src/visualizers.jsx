@@ -2,7 +2,8 @@
 // visualizers.jsx — interactive visual aids
 // =============================================================
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { WALKTHROUGH_DATA, ARCHETYPE_LABELS, ARCHETYPE_ORDER, suitabilityNote } from './walkthroughData';
 
 export function useLocal(key, initial){
   const [v, setV] = useState(()=>{
@@ -209,6 +210,246 @@ export function FLX4Controller(){
 // =============================================================
 // 2. Animated EQ Bass Swap Visualizer
 // =============================================================
+// =============================================================
+// Shared walkthrough shell components
+// =============================================================
+
+const STARS = ['', '★', '★★', '★★★', '★★★★', '★★★★★'];
+
+function PhrasingBanner({ trackA, trackB, suitability }) {
+  return (
+    <div className="wt-phrasing">
+      <style>{`
+        .wt-phrasing{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+        @media(max-width:600px){.wt-phrasing{grid-template-columns:1fr}}
+        .wt-ph-col{background:var(--surface);padding:12px 14px}
+        .wt-ph-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px}
+        .wt-ph-eyebrow.a{color:var(--accent2)}
+        .wt-ph-eyebrow.b{color:var(--accent1)}
+        .wt-ph-text{font-size:var(--fs-sm);color:var(--text-dim);line-height:1.5}
+        .wt-suitability{background:var(--surface);grid-column:1/-1;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px solid var(--border)}
+        .wt-suit-badge{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:var(--bg)}
+        .wt-suit-badge.dim{opacity:.35}
+        .wt-suit-name{font-family:var(--font-mono);font-size:9px;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+        .wt-suit-stars{font-size:9px;color:var(--accent)}
+      `}</style>
+      <div className="wt-ph-col">
+        <div className="wt-ph-eyebrow a">Track A — outgoing</div>
+        <div className="wt-ph-text">{trackA}</div>
+      </div>
+      <div className="wt-ph-col">
+        <div className="wt-ph-eyebrow b">Track B — incoming</div>
+        <div className="wt-ph-text">{trackB}</div>
+      </div>
+      <div className="wt-suitability">
+        {ARCHETYPE_ORDER.map(id => {
+          const stars = suitability[id] || 0;
+          return (
+            <div key={id} className={'wt-suit-badge' + (stars < 3 ? ' dim' : '')}>
+              <span className="wt-suit-name">{ARCHETYPE_LABELS[id]}</span>
+              <span className="wt-suit-stars">{STARS[stars]}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SuitabilityNote({ suitability, archetype }) {
+  if (!archetype || !suitability[archetype]) return null;
+  const stars = suitability[archetype];
+  const note = suitabilityNote(stars);
+  return (
+    <div className="wt-suit-note">
+      <style>{`.wt-suit-note{margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.03em;padding:8px 12px;border-radius:var(--r-sm);background:rgba(99,102,241,.04);border:1px solid rgba(99,102,241,.1)}.wt-suit-note strong{color:var(--accent)}`}</style>
+      <strong>{STARS[stars]}</strong> {note}
+    </div>
+  );
+}
+
+function ViewToggle({ view, onChange }) {
+  return (
+    <div className="wt-toggle">
+      <style>{`
+        .wt-toggle{display:flex;gap:4px;margin-bottom:4px}
+        .wt-toggle-btn{flex:1;padding:7px 0;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;color:var(--muted);cursor:pointer;transition:all var(--dur-fast) var(--ease)}
+        .wt-toggle-btn:hover{color:var(--text-dim);border-color:rgba(255,255,255,.15)}
+        .wt-toggle-btn.active{background:rgba(99,102,241,.12);border-color:var(--accent);color:var(--accent)}
+      `}</style>
+      <button className={'wt-toggle-btn' + (view==='A' ? ' active' : '')} onClick={()=>onChange('A')}>
+        Interactive Timeline
+      </button>
+      <button className={'wt-toggle-btn' + (view==='B' ? ' active' : '')} onClick={()=>onChange('B')}>
+        Step-by-Step Guide
+      </button>
+    </div>
+  );
+}
+
+function Checklist({ items, techniqueId }) {
+  const storageKey = `wt-checklist-${techniqueId}`;
+  const [checked, setChecked] = useLocal(storageKey, {});
+  const toggle = (i) => setChecked(c => ({ ...c, [i]: !c[i] }));
+  const allDone = items.every((_, i) => checked[i]);
+  return (
+    <div className="wt-checklist">
+      <style>{`
+        .wt-checklist{margin-bottom:20px}
+        .wt-checklist-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+        .wt-checklist-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2)}
+        .wt-checklist-reset{background:none;border:none;font-family:var(--font-mono);font-size:10px;color:var(--muted2);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;opacity:.6}
+        .wt-checklist-reset:hover{opacity:1}
+        .wt-check-item{display:flex;align-items:flex-start;gap:10px;padding:6px 0;cursor:pointer;border-radius:4px}
+        .wt-check-item:hover .wt-check-box{border-color:var(--accent)}
+        .wt-check-box{width:16px;height:16px;flex-shrink:0;border:1.5px solid var(--border2);border-radius:3px;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:all var(--dur-fast) var(--ease);margin-top:1px}
+        .wt-check-box.done{background:var(--success);border-color:var(--success)}
+        .wt-check-box svg{width:10px;height:10px;stroke:var(--bg);stroke-width:2.5;fill:none;opacity:0;transform:scale(.7);transition:opacity 150ms ease,transform 150ms ease}
+        .wt-check-box.done svg{opacity:1;transform:scale(1)}
+        .wt-check-text{font-size:var(--fs-sm);color:var(--text-dim);line-height:1.5}
+        .wt-check-text.done{color:var(--muted2);text-decoration:line-through;text-decoration-color:rgba(138,141,151,.4)}
+        .wt-check-all{margin-top:6px;font-family:var(--font-mono);font-size:10px;color:var(--success);letter-spacing:.04em}
+      `}</style>
+      <div className="wt-checklist-head">
+        <span className="wt-checklist-title">Pre-blend checklist</span>
+        {Object.keys(checked).length > 0 && (
+          <button className="wt-checklist-reset" onClick={() => setChecked({})}>Reset</button>
+        )}
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="wt-check-item" onClick={() => toggle(i)} role="checkbox" aria-checked={!!checked[i]}>
+          <div className={'wt-check-box' + (checked[i] ? ' done' : '')}>
+            <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+          </div>
+          <span className={'wt-check-text' + (checked[i] ? ' done' : '')}>{item}</span>
+        </div>
+      ))}
+      {allDone && <div className="wt-check-all">All set — begin the blend.</div>}
+    </div>
+  );
+}
+
+function StepGuide({ techniqueId, checklist, steps, mistakes, controllerNotes, controller, hands }) {
+  return (
+    <div className="wt-step-guide">
+      <style>{`
+        .wt-step-guide{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:4px}
+        .wt-steps{margin-bottom:20px}
+        .wt-steps-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px}
+        .wt-step{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+        .wt-step:last-child{border-bottom:none}
+        .wt-step-num{font-family:var(--font-heading);font-size:11px;font-weight:700;color:var(--accent);width:18px;padding-top:1px;flex-shrink:0}
+        .wt-step-body{}
+        .wt-step-range{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--accent);text-transform:uppercase;margin-bottom:3px}
+        .wt-step-range.crit{color:var(--success)}
+        .wt-step-action{font-size:var(--fs-sm);color:var(--text);line-height:1.55;margin-bottom:4px}
+        .wt-step-listen{font-size:var(--fs-xs);color:var(--muted);font-style:italic;line-height:1.4}
+        .wt-step-listen::before{content:'Listen for: ';font-style:normal;color:var(--muted2)}
+        .wt-section-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;margin-top:20px}
+        .wt-mistake{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:var(--fs-sm);color:var(--text-dim);line-height:1.5}
+        .wt-mistake:last-child{border-bottom:none}
+        .wt-mistake::before{content:'!';font-family:var(--font-mono);font-size:10px;color:var(--muted2);background:rgba(255,255,255,.06);border-radius:3px;padding:1px 5px;flex-shrink:0;height:fit-content;margin-top:1px}
+        .wt-ctrl-note{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-top:8px}
+        .wt-ctrl-note-head{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--accent2);margin-bottom:6px}
+        .wt-ctrl-note-text{font-size:var(--fs-sm);color:var(--text-dim);line-height:1.55}
+        .wt-hands{margin-top:20px}
+        .wt-hands-row{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:start}
+        .wt-hands-row:last-child{border-bottom:none}
+        .wt-hands-bar{font-family:var(--font-mono);font-size:9px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+        .wt-hands-bar.crit{color:var(--success)}
+        .wt-hands-side{font-size:var(--fs-xs);color:var(--text-dim);line-height:1.4}
+        .wt-hands-side-label{font-family:var(--font-mono);font-size:9px;color:var(--muted2);margin-bottom:2px}
+      `}</style>
+
+      <Checklist items={checklist} techniqueId={techniqueId} />
+
+      <div className="wt-steps">
+        <div className="wt-steps-title">Numbered steps</div>
+        {steps.map((s, i) => {
+          const isCrit = s.barRange.includes('SWAP') || s.barRange.includes('DROP') || s.barRange.includes('CROSSOVER') || s.barRange.includes('LOOP IN') || s.barRange.includes('LOOP EXIT') || s.barRange.includes('CUT');
+          return (
+            <div key={i} className="wt-step">
+              <span className="wt-step-num">{i + 1}</span>
+              <div className="wt-step-body">
+                <div className={'wt-step-range' + (isCrit ? ' crit' : '')}>{s.barRange}</div>
+                <div className="wt-step-action">{s.action}</div>
+                <div className="wt-step-listen">{s.listenFor}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {hands && (
+        <div className="wt-hands">
+          <div className="wt-section-title" style={{marginTop:0}}>Hands indicator</div>
+          <div style={{display:'grid',gridTemplateColumns:'auto 1fr 1fr',gap:'4px 12px',marginBottom:6}}>
+            <div/>
+            <div className="wt-hands-side-label">Left hand</div>
+            <div className="wt-hands-side-label">Right hand</div>
+          </div>
+          {hands.map((h, i) => {
+            const isCrit = h.barRange.includes('DROP') || h.barRange.includes('17');
+            return (
+              <div key={i} className="wt-hands-row">
+                <span className={'wt-hands-bar' + (isCrit ? ' crit' : '')}>{h.barRange}</span>
+                <div className="wt-hands-side">{h.left}</div>
+                <div className="wt-hands-side">{h.right}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="wt-section-title">Common mistakes</div>
+      {mistakes.map((m, i) => (
+        <div key={i} className="wt-mistake">{m}</div>
+      ))}
+
+      <div className="wt-section-title">Controller notes — {controller}</div>
+      <div className="wt-ctrl-note">
+        <div className="wt-ctrl-note-head">{controller}</div>
+        <div className="wt-ctrl-note-text">{controllerNotes[controller] || 'No specific notes for this controller.'}</div>
+      </div>
+    </div>
+  );
+}
+
+// Wrapper that adds phrasing banner, view toggle, and suitability note to any visualizer
+function WalkthroughShell({ techniqueId, children }) {
+  const data = WALKTHROUGH_DATA[techniqueId];
+  const [view, setView] = useLocal('wt-view-' + techniqueId, 'A');
+  const [profile] = useLocal('djpath_profile', null);
+  const [controller] = useLocal('djpath_controller', 'DDJ-FLX4');
+  const archetype = profile?.archetype;
+
+  return (
+    <div>
+      <PhrasingBanner
+        trackA={data.phrasing.trackA}
+        trackB={data.phrasing.trackB}
+        suitability={data.suitability}
+      />
+      <ViewToggle view={view} onChange={setView} />
+      {view === 'A' ? children : (
+        <StepGuide
+          techniqueId={techniqueId}
+          checklist={data.checklist}
+          steps={data.steps}
+          mistakes={data.mistakes}
+          controllerNotes={data.controllerNotes}
+          controller={controller}
+          hands={data.hands}
+        />
+      )}
+      <SuitabilityNote suitability={data.suitability} archetype={archetype} />
+    </div>
+  );
+}
+
+// =============================================================
+// 2. EQ Bass Swap Visualizer (Ch 7 — Mixing Techniques)
+// =============================================================
 export function BassSwapVisualizer(){
   const [bar, setBar] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -231,14 +472,15 @@ export function BassSwapVisualizer(){
     return ()=>cancelAnimationFrame(rafRef.current);
   },[playing]);
 
-  const aLow  = bar < 16 ? 1 : (bar < 17 ? 1 - (bar-16) : 0);
-  const aMid  = bar < 8 ? 1 : Math.max(0, 1 - (bar-8)/24);
-  const aHi   = Math.max(0, 1 - bar/32);
-  const aFad  = Math.max(0, 1 - Math.max(0, bar-16)/16);
-  const bLow  = bar < 16 ? 0 : (bar < 17 ? (bar-16) : 1);
-  const bMid  = Math.min(1, Math.max(0, (bar-4)/16));
-  const bHi   = Math.min(1, bar/12);
-  const bFad  = Math.min(1, 0.6 + Math.max(0, bar-16)/40);
+  // EQ values: 0=killed, 0.5=flat(12 o'clock/0dB), 1=boosted — from reference §1.3
+  const aLow  = bar < 16 ? 0.5 : 0;
+  const aMid  = bar < 20 ? 0.5 : 0.25;
+  const aHi   = bar < 8  ? 0.5 : 0.25;
+  const aFad  = bar < 24 ? 1.0 : Math.max(0, 1 - (bar-24)/8);
+  const bLow  = bar < 16 ? 0   : 0.5;
+  const bMid  = bar < 8  ? 0.5 : bar < 16 ? 0.65 : 0.5;
+  const bHi   = 0.5;
+  const bFad  = bar < 4  ? 0 : bar < 8 ? 0.5 : bar < 12 ? 0.75 : 1.0;
 
   const knob = (v, color) => {
     const angle = -135 + v*270;
@@ -254,15 +496,18 @@ export function BassSwapVisualizer(){
   };
 
   const event =
-    bar < 4 ? 'B kills LOW, fader to 60%, HI begins entering' :
-    bar < 8 ? "Track B's shimmer (HI) layers on top of A" :
-    bar < 16 ? "B's MID rises — basslines now intertwined" :
-    bar < 17.5 ? '★ BASS SWAP — kill A LOW, open B LOW on the downbeat' :
-    bar < 24 ? "B owns the low end. A's MID still present." :
-    bar < 32 ? "A strips back to atmosphere, fades out" :
-    'Transition complete — B is solo';
+    bar < 4  ? 'PLAY Deck 2 — fader at 0%, confirm beatmatch in headphones' :
+    bar < 8  ? 'B fader to 50% — kick + percussion only, no bass' :
+    bar < 12 ? 'B fader to 75%, A HI dipped — B groove sits beside A' :
+    bar < 16 ? 'B fader to 100% — hands on both LOW knobs, tension builds' :
+    bar < 17 ? '★ Bar 17 — simultaneous LOW swap — no gap, no double-bass' :
+    bar < 20 ? 'Swap done — B bass dominant, A contributing mids/highs' :
+    bar < 24 ? 'A MID → 25% — A becomes a textural ghost' :
+    bar < 32 ? 'A fader slowly down — exits by bar 32' :
+    'Mix complete — B is solo';
 
   return (
+    <WalkthroughShell techniqueId="t1">
     <div className="bs-wrap">
       <style>{`
         .bs-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -324,9 +569,12 @@ export function BassSwapVisualizer(){
         </div>
       </div>
 
-      <SwapTimeline bar={bar} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={32} criticalBar={16}
+        events={[{b:4,detail:'B HI enters'},{b:8,detail:'B fader 75%'},{b:16,detail:'★ Bass swap'},{b:20,detail:'A MID → 25%'},{b:32,detail:'Done'}]}
+        onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="bs-event" style={{marginTop:14}}>{event}</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
@@ -1163,15 +1411,21 @@ function mkKnob(v, color){
   );
 }
 
-function MixTimeline({bar, total, events, onSeek}){
+function MixTimeline({bar, total, events, onSeek, criticalBar}){
+  const isCritActive = criticalBar !== undefined && Math.floor(bar) === criticalBar;
   return (
     <div style={{position:'relative',height:36,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:6,cursor:'pointer',marginTop:6}}
          onClick={(e)=>{ const r = e.currentTarget.getBoundingClientRect(); onSeek(((e.clientX-r.left)/r.width)*total); }}>
       <style>{`
         .mx-tl-mark{position:absolute;top:0;bottom:0;width:1px;background:var(--border2)}
         .mx-tl-label{position:absolute;top:18px;font-family:var(--font-mono);font-size:9px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
-        .mx-tl-label.crit{color:var(--gold)}
+        .mx-tl-label.crit{color:var(--success)}
         .mx-tl-head{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+        .mx-tl-crit-zone{position:absolute;top:0;bottom:0;width:2px;background:var(--success);opacity:.7}
+        @media(prefers-reduced-motion:no-preference){
+          .mx-tl-crit-zone.active{animation:critPulse 600ms ease-in-out infinite alternate}
+          @keyframes critPulse{from{opacity:.4;box-shadow:none}to{opacity:1;box-shadow:0 0 8px var(--success)}}
+        }
       `}</style>
       {events.map(ev=>(
         <span key={ev.b}>
@@ -1179,6 +1433,10 @@ function MixTimeline({bar, total, events, onSeek}){
           <div className={'mx-tl-label '+(ev.detail.startsWith('★')?'crit':'')} style={{left:(ev.b/total*100)+'%'}}>{ev.detail}</div>
         </span>
       ))}
+      {criticalBar !== undefined && (
+        <div className={'mx-tl-crit-zone' + (isCritActive ? ' active' : '')}
+             style={{left:(criticalBar/total*100)+'%'}}/>
+      )}
       <div className="mx-tl-head" style={{left:(Math.min(bar,total)/total*100)+'%'}}/>
     </div>
   );
@@ -1210,34 +1468,39 @@ export function LongBlendVisualizer(){
     return ()=>cancelAnimationFrame(rafRef.current);
   },[playing]);
 
-  const aHi  = Math.max(0, 1 - Math.max(0, bar-16)/32);
-  const aMid = Math.max(0, 1 - Math.max(0, bar-32)/24);
-  const aLow = bar < 46 ? 1 : Math.max(0, 1-(bar-46)/2);
-  const aFad = Math.max(0, 1 - Math.max(0, bar-52)/12);
-  const bHi  = Math.min(1, Math.max(0, (bar-4)/20));
-  const bMid = Math.min(1, Math.max(0, (bar-16)/24));
-  const bLow = bar < 46 ? 0 : Math.min(1, (bar-46)/2);
-  const bFad = Math.min(1, 0.5 + Math.max(0, bar-8)/32);
+  // EQ values: 0=killed, 0.5=flat(0dB), 1=boosted — from reference §2.3
+  const aHi  = bar < 16 ? 0.5 : bar < 24 ? 0.35 : bar < 48 ? 0.25 : 0.1;
+  const aMid = bar < 40 ? 0.5 : bar < 48 ? 0.25 : 0.1;
+  const aLow = bar < 32 ? 0.5 : 0;
+  const aFad = bar < 48 ? 1.0 : bar < 56 ? 0.5 : Math.max(0, 0.5 - 0.5*(bar-56)/8);
+  const bHi  = bar < 8  ? 0.25 : 0.5;
+  const bMid = 0.5;
+  const bLow = bar < 32 ? 0 : 0.5;
+  const bFad = bar < 8 ? 0.25 : bar < 16 ? 0.5 : bar < 24 ? 0.6 : bar < 32 ? 0.8 : 1.0;
 
   const event =
-    bar < 8 ? 'Both tracks playing — blend beginning' :
-    bar < 16 ? "B's HI enters softly over A" :
-    bar < 32 ? 'A HI fading — B HI established' :
-    bar < 48 ? 'A MID thins out — B MID rising' :
-    bar < 52 ? '★ Crossover — B takes the low end on bar 48' :
-    bar < 60 ? 'A fading in last stretch' :
-    bar < 64 ? 'B is lead — A atmospheric tail' :
-    'Transition complete — B is solo';
+    bar < 8  ? 'B barely audible — fader 25%, HI 25%, LOW 0%' :
+    bar < 16 ? "B's HI enters — fader 50%, hats becoming distinct" :
+    bar < 24 ? 'A HI → 35%, B fader 60% — A receding' :
+    bar < 32 ? 'Pressure builds — B fader 80%, bass swap imminent' :
+    bar < 33 ? '★ Bar 33 — simultaneous LOW swap — bass identity flips' :
+    bar < 40 ? 'Swap done — B bass now dominant' :
+    bar < 48 ? 'A MID → 25% — A as faint atmosphere' :
+    bar < 56 ? 'A nearly gone — HI and MID to 10%, fader to 50%' :
+    bar < 64 ? 'A exits — fader to 0% by bar 64' :
+    'Mix complete — B is solo';
 
   const tlEvents = [
     {b:8,  detail:'B HI enters'},
-    {b:24, detail:'B MID rises'},
-    {b:48, detail:'★ Crossover'},
-    {b:56, detail:'A fades'},
+    {b:16, detail:'B fader 50%'},
+    {b:32, detail:'★ Bass swap'},
+    {b:40, detail:'A MID → 25%'},
+    {b:56, detail:'A exits'},
     {b:64, detail:'Done'},
   ];
 
   return (
+    <WalkthroughShell techniqueId="t2">
     <div className="lb-wrap">
       <style>{`
         .lb-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1299,17 +1562,18 @@ export function LongBlendVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={32} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="lb-event" style={{marginTop:14}}>{event}</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
 // =============================================================
-// Breakdown Mix Visualizer (48 bars)
+// Breakdown Mix Visualizer (24 bars)
 // =============================================================
 export function BreakdownMixVisualizer(){
-  const TOTAL = 48;
+  const TOTAL = 24;
   const [bar, setBar] = useState(0);
   const [playing, setPlaying] = useState(false);
   const rafRef = useRef();
@@ -1331,33 +1595,36 @@ export function BreakdownMixVisualizer(){
     return ()=>cancelAnimationFrame(rafRef.current);
   },[playing]);
 
-  const aLow = bar < 16 ? 1 : 0;
-  const aMid = bar < 16 ? 1 : Math.max(0, 0.3 - Math.max(0,bar-32)/8);
-  const aHi  = bar < 16 ? 1 : Math.max(0, 0.5 - Math.max(0,bar-32)/8);
-  const aFad = Math.max(0, 1 - Math.max(0, bar-32)/8);
-  const bLow = bar < 24 ? 0 : (bar < 32 ? Math.max(0,(bar-28)/4) : 1);
-  const bMid = Math.min(1, Math.max(0, (bar-16)/16));
-  const bHi  = Math.min(1, Math.max(0, (bar-8)/12));
-  const bFad = Math.min(1, Math.max(0, (bar-8)/8));
+  // EQ values: 0=killed, 0.5=flat(0dB) — from reference §3.3
+  // A has no kick (production effect); EQs stay flat until bar 5 HI dip
+  const aLow = 0.5;
+  const aMid = 0.5;
+  const aHi  = bar < 4 ? 0.5 : 0.35;
+  const aFad = bar < 16 ? 1.0 : 0;
+  const bLow = bar < 16 ? 0   : 0.5;
+  const bMid = 0.5;
+  const bHi  = 0.5;
+  const bFad = bar < 1 ? 0.25 : bar < 4 ? 0.4 : bar < 8 ? 0.6 : bar < 12 ? 0.75 : bar < 16 ? 0.9 : 1.0;
 
   const event =
-    bar < 8 ? 'A in full groove — prepare incoming track' :
-    bar < 16 ? "B's HI layers in — kick mix building" :
-    bar < 24 ? '★ A hits breakdown — kick gone, pure melody' :
-    bar < 32 ? "B's kick and intro over A's melody" :
-    bar < 40 ? '★ B drops — full energy, A melody fades' :
-    bar < 48 ? 'A fading — B is solo groove' :
-    'Done — cleanest transition in prog psy';
+    bar < 1  ? 'PLAY Deck 2 on A\'s breakdown downbeat — fader 25%, LOW 0%' :
+    bar < 4  ? 'B pulse entering A\'s atmospheric breakdown — fader 40%' :
+    bar < 8  ? 'Fader to 60%, A HI → 35% — B starting to feel present' :
+    bar < 12 ? 'Fader to 75% — A is in its build' :
+    bar < 16 ? 'Fader to 90% — A\'s build intensifying, hand on Channel 1 fader' :
+    bar < 17 ? '★ Bar 17 — slam Channel 1 to 0% AND open B\'s LOW to 50%' :
+    'B drops at full energy — mix complete';
 
   const tlEvents = [
-    {b:16, detail:'A breakdown'},
-    {b:24, detail:'B intro'},
-    {b:32, detail:'★ B drops'},
-    {b:40, detail:'A fades'},
-    {b:48, detail:'Done'},
+    {b:4,  detail:'B fader 60%'},
+    {b:8,  detail:'A builds'},
+    {b:12, detail:'Fader 75%'},
+    {b:16, detail:'★ Drop — A cut, B in'},
+    {b:24, detail:'Done'},
   ];
 
   return (
+    <WalkthroughShell techniqueId="t3">
     <div className="bm-wrap">
       <style>{`
         .bm-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1423,17 +1690,18 @@ export function BreakdownMixVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={16} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="bm-event" style={{marginTop:14}}>{event}</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
 // =============================================================
-// Filter Blend Visualizer (32 bars)
+// Filter Blend Visualizer (24 bars)
 // =============================================================
 export function FilterBlendVisualizer(){
-  const TOTAL = 32;
+  const TOTAL = 24;
   const [bar, setBar] = useState(0);
   const [playing, setPlaying] = useState(false);
   const rafRef = useRef();
@@ -1455,35 +1723,38 @@ export function FilterBlendVisualizer(){
     return ()=>cancelAnimationFrame(rafRef.current);
   },[playing]);
 
-  const aHpf = Math.min(1, bar/20);
-  const aLow = Math.max(0, 1 - bar/16);
-  const aMid = Math.max(0, 1 - Math.max(0,bar-8)/16);
-  const aHi  = Math.max(0, 1 - bar/32);
-  const aFad = 1;
-  const bLpf = Math.min(1, Math.max(0,(bar-4)/16));
-  const bHi  = Math.min(1, Math.max(0,(bar-8)/12));
-  const bMid = Math.min(1, Math.max(0,(bar-4)/16));
-  const bLow = Math.min(1, Math.max(0,(bar-16)/6));
-  const bFad = Math.min(1, Math.max(0,(bar-2)/8));
+  // CFX: 0=LPF max (fully CCW), 0.5=bypass (12 o'clock), 1=HPF max (fully CW) — ref §4.3
+  // A starts at 0.5 (bypass), ramps CW from bar 5. B starts at 0 (LPF max), opens to bypass.
+  const aCfx = bar < 4 ? 0.5 : Math.min(1.0, 0.5 + (bar-4)/24);
+  const bCfx = bar < 4 ? 0   : bar < 16 ? Math.min(0.5, (bar-4)/24) : 0.5;
+  // EQ stays flat; filter is via CFX. Visual EQ shows "spectral content" thinning as HPF rises.
+  const aHi  = Math.max(0.05, 0.5 - Math.max(0,(bar-4))*0.025);
+  const aMid = Math.max(0.05, 0.5 - Math.max(0,(bar-8))*0.04);
+  const aLow = Math.max(0.05, 0.5 - Math.max(0,(bar-4))*0.04);
+  const aFad = bar < 16 ? 1.0 : Math.max(0, 1 - (bar-16)/8);
+  const bHi  = bar < 8  ? 0.05 : Math.min(0.5, (bar-8)/16*0.5);
+  const bMid = bar < 4  ? 0.05 : Math.min(0.5, (bar-4)/16*0.5);
+  const bLow = bar < 16 ? 0    : 0.5;
+  const bFad = 1.0;
 
   const event =
-    bar < 4 ? 'A playing clean — B cued, LPF closed' :
-    bar < 8 ? 'B fader up — sounds muffled (LPF blocking HI)' :
-    bar < 16 ? 'A sounds thin (HPF cutting LOW). B muffled bass.' :
-    bar < 20 ? '★ Filter crossover zone — A thin, B opening up' :
-    bar < 28 ? 'B fully open — A is ghostly atmosphere' :
-    bar < 32 ? 'A fades — B in full frequency' :
-    'Done — spacious frequency blend complete';
+    bar < 4  ? 'A clean — B started at 100% fader, CFX fully CCW (LPF max). Barely audible.' :
+    bar < 8  ? 'A CFX rotating CW — bass thinning. B LPF opening slowly.' :
+    bar < 12 ? 'A sounds hollow — HPF cutting mids. B pads emerging.' :
+    bar < 16 ? 'A: hi-hat residue. B nearly full but bass-less.' :
+    bar < 17 ? '★ Bar 17 — A CFX to HPF max; B CFX to center + LOW opens' :
+    bar < 24 ? 'B blooms to full range — A fading out across 8 bars' :
+    'Mix complete — B is solo';
 
   const tlEvents = [
-    {b:8,  detail:'B starts muffled'},
-    {b:16, detail:'A sounds thin'},
-    {b:20, detail:'★ Filter crossover'},
-    {b:28, detail:'B fully open'},
-    {b:32, detail:'Done'},
+    {b:4,  detail:'A HPF begins'},
+    {b:8,  detail:'B LPF opens'},
+    {b:16, detail:'★ Crossover'},
+    {b:24, detail:'Done'},
   ];
 
   return (
+    <WalkthroughShell techniqueId="t4">
     <div className="fb-wrap">
       <style>{`
         .fb-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1525,7 +1796,7 @@ export function FilterBlendVisualizer(){
           <div className="fb-deck-head">
             <div className="fb-deck-name" style={{color:'#5b9bd5'}}>
               TRACK A · outgoing
-              {aHpf > 0.05 && <span className="fb-filter-tag fb-hpf">HPF {Math.round(aHpf*100)}%</span>}
+              {aCfx > 0.55 && <span className="fb-filter-tag fb-hpf">CFX HPF {Math.round((aCfx-0.5)*200)}%</span>}
             </div>
             <div className="fb-deck-fader"><span>Fader</span><div className="fb-fader-bar"><div className="fb-fader-fill" style={{width:(aFad*100)+'%'}}/></div></div>
           </div>
@@ -1541,7 +1812,7 @@ export function FilterBlendVisualizer(){
           <div className="fb-deck-head">
             <div className="fb-deck-name" style={{color:'#9b6de0'}}>
               TRACK B · incoming
-              {bLpf > 0.05 && bHi < 0.95 && <span className="fb-filter-tag fb-lpf">LPF open {Math.round(bLpf*100)}%</span>}
+              {bCfx < 0.45 && <span className="fb-filter-tag fb-lpf">CFX LPF {Math.round((0.5-bCfx)*200)}%</span>}
             </div>
             <div className="fb-deck-fader"><span>Fader</span><div className="fb-fader-bar"><div className="fb-fader-fill" style={{width:(bFad*100)+'%'}}/></div></div>
           </div>
@@ -1554,9 +1825,10 @@ export function FilterBlendVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={16} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="fb-event" style={{marginTop:14}}>{event}</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
@@ -1616,6 +1888,7 @@ export function LoopExtensionVisualizer(){
   ];
 
   return (
+    <WalkthroughShell techniqueId="t5">
     <div className="le-wrap">
       <style>{`
         .le-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1686,9 +1959,10 @@ export function LoopExtensionVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={0} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="le-event" style={{marginTop:14}}>{event}</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
@@ -1739,6 +2013,7 @@ export function CutTransitionVisualizer(){
   ];
 
   return (
+    <WalkthroughShell techniqueId="t6">
     <div className="ct-wrap">
       <style>{`
         .ct-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1801,10 +2076,11 @@ export function CutTransitionVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={3} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className="ct-event" style={{marginTop:14}}>{event}</div>
       <div className="ct-warning">&#9888; Use 1&#8211;2 per set maximum &#8212; more than that and it reads as a mistake, not intention.</div>
     </div>
+    </WalkthroughShell>
   );
 }
 
@@ -1865,6 +2141,7 @@ export function BuildUpChainVisualizer(){
   );
 
   return (
+    <WalkthroughShell techniqueId="t7">
     <div className="bu-wrap">
       <style>{`
         .bu-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin:24px 0}
@@ -1918,8 +2195,9 @@ export function BuildUpChainVisualizer(){
         </div>
       </div>
 
-      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
+      <MixTimeline bar={bar} total={TOTAL} events={tlEvents} criticalBar={14} onSeek={(b)=>{setBar(b);setPlaying(false);}}/>
       <div className={`bu-event${released?' bu-release':''}`} style={{marginTop:14}} dangerouslySetInnerHTML={{__html:event}}/>
     </div>
+    </WalkthroughShell>
   );
 }
