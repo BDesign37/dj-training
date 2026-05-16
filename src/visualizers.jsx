@@ -473,14 +473,16 @@ export function BassSwapVisualizer(){
   },[playing]);
 
   // EQ values: 0=killed, 0.5=flat(12 o'clock/0dB), 1=boosted — from reference §1.3
-  const aLow  = bar < 16 ? 0.5 : 0;
-  const aMid  = bar < 20 ? 0.5 : 0.25;
-  const aHi   = bar < 8  ? 0.5 : 0.25;
-  const aFad  = bar < 24 ? 1.0 : Math.max(0, 1 - (bar-24)/8);
-  const bLow  = bar < 16 ? 0   : 0.5;
-  const bMid  = bar < 8  ? 0.5 : bar < 16 ? 0.65 : 0.5;
+  // All values use smooth ramps so animation updates every RAF frame
+  const r = (a, b, t0, t1) => a + (b-a) * Math.max(0, Math.min(1, (bar-t0)/(t1-t0)));
+  const aLow  = r(0.5, 0,    15.5, 16.5);
+  const aMid  = r(0.5, 0.25, 19,   22);
+  const aHi   = r(0.5, 0.25, 7,    10);
+  const aFad  = bar < 24 ? 1.0 : Math.max(0, 1-(bar-24)/8);
+  const bLow  = r(0,   0.5,  15.5, 16.5);
+  const bMid  = bar < 14 ? r(0.5, 0.65, 7, 10) : r(0.65, 0.5, 14, 18);
   const bHi   = 0.5;
-  const bFad  = bar < 4  ? 0 : bar < 8 ? 0.5 : bar < 12 ? 0.75 : 1.0;
+  const bFad  = bar < 4 ? 0 : r(0, 1, 4, 13);
 
   const knob = (v, color) => {
     const angle = -135 + v*270;
@@ -490,7 +492,7 @@ export function BassSwapVisualizer(){
           <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
           <circle cx="25" cy="25" r="6" fill={color} opacity={0.5+0.5*v}/>
         </svg>
-        <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .2s ease'}}>
+        <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .08s ease'}}>
           <div style={{position:'absolute',left:'50%',top:'50%',width:3,height:16,marginLeft:-1.5,marginTop:-16,background:color,borderRadius:2,opacity:0.3+0.7*v}}/>
         </div>
       </div>
@@ -1408,7 +1410,7 @@ function mkKnob(v, color){
         <circle cx="25" cy="25" r="22" fill="none" stroke="#2a2444" strokeWidth="2"/>
         <circle cx="25" cy="25" r="6" fill={color} opacity={0.5+0.5*v}/>
       </svg>
-      <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .2s ease'}}>
+      <div style={{position:'absolute',inset:0,transform:`rotate(${angle}deg)`,transition:'transform .08s ease'}}>
         <div style={{position:'absolute',left:'50%',top:'50%',width:3,height:16,marginLeft:-1.5,marginTop:-16,background:color,borderRadius:2,opacity:0.3+0.7*v}}/>
       </div>
     </div>
@@ -1473,14 +1475,15 @@ export function LongBlendVisualizer(){
   },[playing]);
 
   // EQ values: 0=killed, 0.5=flat(0dB), 1=boosted — from reference §2.3
-  const aHi  = bar < 16 ? 0.5 : bar < 24 ? 0.35 : bar < 48 ? 0.25 : 0.1;
-  const aMid = bar < 40 ? 0.5 : bar < 48 ? 0.25 : 0.1;
-  const aLow = bar < 32 ? 0.5 : 0;
-  const aFad = bar < 48 ? 1.0 : bar < 56 ? 0.5 : Math.max(0, 0.5 - 0.5*(bar-56)/8);
-  const bHi  = bar < 8  ? 0.25 : 0.5;
+  const r = (a, b, t0, t1) => a + (b-a) * Math.max(0, Math.min(1, (bar-t0)/(t1-t0)));
+  const aHi  = bar < 16 ? 0.5 : bar < 24 ? r(0.5, 0.35, 16, 20) : bar < 48 ? r(0.35, 0.25, 24, 28) : r(0.25, 0.1, 48, 54);
+  const aMid = bar < 40 ? 0.5 : r(0.5, 0.1, 40, 50);
+  const aLow = r(0.5, 0, 30, 34);
+  const aFad = bar < 48 ? 1.0 : bar < 56 ? r(1, 0.5, 48, 56) : r(0.5, 0, 56, 64);
+  const bHi  = r(0.25, 0.5, 6, 10);
   const bMid = 0.5;
-  const bLow = bar < 32 ? 0 : 0.5;
-  const bFad = bar < 8 ? 0.25 : bar < 16 ? 0.5 : bar < 24 ? 0.6 : bar < 32 ? 0.8 : 1.0;
+  const bLow = r(0, 0.5, 30, 34);
+  const bFad = bar < 32 ? r(0.25, 1, 0, 32) : 1;
 
   const event =
     bar < 8  ? 'B barely audible — fader 25%, HI 25%, LOW 0%' :
@@ -1600,15 +1603,15 @@ export function BreakdownMixVisualizer(){
   },[playing]);
 
   // EQ values: 0=killed, 0.5=flat(0dB) — from reference §3.3
-  // A has no kick (production effect); EQs stay flat until bar 5 HI dip
+  const r = (a, b, t0, t1) => a + (b-a) * Math.max(0, Math.min(1, (bar-t0)/(t1-t0)));
   const aLow = 0.5;
   const aMid = 0.5;
-  const aHi  = bar < 4 ? 0.5 : 0.35;
-  const aFad = bar < 16 ? 1.0 : 0;
-  const bLow = bar < 16 ? 0   : 0.5;
+  const aHi  = r(0.5, 0.35, 3, 6);
+  const aFad = r(1, 0, 15.5, 16.5);
+  const bLow = bar < 15.5 ? 0 : r(0, 0.5, 15.5, 16.5);
   const bMid = 0.5;
   const bHi  = 0.5;
-  const bFad = bar < 1 ? 0.25 : bar < 4 ? 0.4 : bar < 8 ? 0.6 : bar < 12 ? 0.75 : bar < 16 ? 0.9 : 1.0;
+  const bFad = r(0.25, 1, 0, 16);
 
   const event =
     bar < 1  ? 'PLAY Deck 2 on A\'s breakdown downbeat — fader 25%, LOW 0%' :
@@ -1741,7 +1744,7 @@ export function FilterBlendVisualizer(){
   const aFad = bar < 16 ? 1.0 : Math.max(0, 1 - (bar-16)/8);
   const bHi  = Math.max(0.05, 0.5 - cfxB * 0.9); // LPF cuts highs
   const bMid = Math.max(0.05, 0.5 - cfxB * 0.5);
-  const bLow = bar < 16 ? 0    : 0.5;
+  const bLow = Math.max(0, Math.min(0.5, (bar-15) / 2 * 0.5));
   const bFad = 1.0;
 
   const event =
@@ -1868,14 +1871,15 @@ export function LoopExtensionVisualizer(){
   const isLooping = bar < 24;
   const loopPhase = (bar % 4) / 4;
   // EQ convention: 0=killed, 0.5=flat (12 o'clock), 1=boosted
-  const aLow = bar < 24 ? 0.5 : 0; // A bass killed on loop exit
-  const aMid = 0.5; // A mids flat throughout
-  const aHi  = bar < 16 ? 0.5 : 0.25; // A hi gently reduced after blend locks
-  const aFad = bar < 24 ? 1 : Math.max(0, 1-(bar-24)/4); // A fades out after loop exit
-  const bLow = bar < 24 ? 0 : 0.5; // B bass killed until loop exits, then opens
-  const bMid = 0.5; // B mids flat throughout
-  const bHi  = 0.5; // B hi flat throughout
-  const bFad = Math.min(1, Math.max(0,(bar-4)/12)); // B fader rises bar 4→16
+  const r = (a, b, t0, t1) => a + (b-a) * Math.max(0, Math.min(1, (bar-t0)/(t1-t0)));
+  const aLow = r(0.5, 0,    23, 25);
+  const aMid = 0.5;
+  const aHi  = r(0.5, 0.25, 15, 17);
+  const aFad = bar < 23 ? 1 : r(1, 0, 23, 27);
+  const bLow = r(0,   0.5,  23, 25);
+  const bMid = 0.5;
+  const bHi  = 0.5;
+  const bFad = Math.min(1, Math.max(0, (bar-4)/12));
 
   const loopActiveHeight = isLooping ? (0.85 + 0.15*Math.sin(loopPhase*Math.PI*2)) : 1;
 
@@ -2002,14 +2006,16 @@ export function CutTransitionVisualizer(){
   },[playing]);
 
   // EQ convention: 0=killed, 0.5=flat (12 o'clock), 1=boosted
-  const aLow = bar < CUT ? 0.5 : 0;
-  const aMid = bar < CUT ? 0.5 : 0;
-  const aHi  = bar < CUT ? 0.5 : 0;
-  const aFad = bar < CUT ? 1 : 0; // fader is 0-1 (not EQ convention)
-  const bLow = bar < CUT ? 0 : 0.5;
-  const bMid = bar < CUT ? 0 : 0.5;
-  const bHi  = bar < CUT ? 0 : 0.5;
-  const bFad = bar < CUT ? 0 : 1; // fader is 0-1
+  // EQ knobs use a tiny ramp so the dial animates; faders stay hard-cut (intentional)
+  const rct = (a, b) => a + (b-a) * Math.max(0, Math.min(1, (bar-(CUT-0.15))/0.3));
+  const aLow = rct(0.5, 0);
+  const aMid = rct(0.5, 0);
+  const aHi  = rct(0.5, 0);
+  const aFad = bar < CUT ? 1 : 0;
+  const bLow = rct(0, 0.5);
+  const bMid = rct(0, 0.5);
+  const bHi  = rct(0, 0.5);
+  const bFad = bar < CUT ? 0 : 1;
 
   const event =
     bar < CUT ? 'A at full — no blending. Cue B perfectly.' :
